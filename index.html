@@ -417,40 +417,43 @@ let previewSkin=selectedSkin,previewEnemySkin=selectedEnemySkin;let previewPlayS
  skinEffect(0,0,performance.now(),skin.id);dragon(0,0,performance.now(),skin.id);ctx.restore();previewFlap=0;
  if(active){ctx.save();ctx.textAlign='center';ctx.font='17px system-ui';for(let j=0;j<5;j++){const a=phase*2.3+j*1.2566,px=canvas.width/2+Math.cos(a)*58,py=canvas.height/2+Math.sin(a)*35-10-Math.sin(phase*3+j)*7;ctx.globalAlpha=Math.min(1,Math.max(0,(2600-elapsed)/450));ctx.fillText(j%2?'💜':'✨',px,py)}ctx.restore()}
  document.getElementById('previewName').textContent=skin.emoji+' '+skin.name;document.getElementById('previewStatus').textContent=active?'🐉 Гр-р-р! '+skin.name+' радуется и машет крылышками!':selectedSkin===skin.id?'Этот дракон сейчас выбран.':ownedSkins.includes(skin.id)?'Скин уже куплен. Можешь надеть его!':'Посмотри, как выглядит дракон. Цена: 100 🪙. Предпросмотр бесплатный.'}else if(shopMode==='bonuses'){drawPawShield(0,0,performance.now());document.getElementById('previewName').textContent='🐾 Лапка-защитница';document.getElementById('previewStatus').textContent='Фиолетово-розовый щит спасает от одного укуса. В запасе: '+shieldCount+'. Цена: 60 🪙.'}else{const skin=enemySkinInfo.find(s=>s.id===previewEnemySkin)||enemySkinInfo[0];monster(0,0,performance.now(),0,skin.id);document.getElementById('previewName').textContent=skin.emoji+' '+skin.name;document.getElementById('previewStatus').textContent=selectedEnemySkin===skin.id?'Этот вид врагов сейчас выбран.':ownedEnemySkins.includes(skin.id)?'Скин врагов уже куплен. Можешь надеть его!':'Посмотри, как выглядит монстр. Цена: '+(skin.id==='toxic'?150:100)+' 🪙. Предпросмотр бесплатный.'}ctx.restore()}finally{ctx=oldCtx;cell=oldCell;offx=oldOffX;offy=oldOffY}}function playCuteDragonGrowl(){
- // A breathy two-syllable creature voice rather than a steady electronic buzz.
+ // Organic little-creature grumble. No steady alert-like oscillator or internet dependency.
  try{
   const AC=window.AudioContext||window.webkitAudioContext;
   if(!AC)return;
-  const ac=new AC(),t=ac.currentTime+.035;
+  const ac=window.gryGrowlContext||(window.gryGrowlContext=new AC());
   if(ac.state==='suspended')ac.resume().catch(()=>{});
-  const master=ac.createGain();master.gain.value=.23;master.connect(ac.destination);
-  const noiseData=ac.createBuffer(1,Math.ceil(ac.sampleRate*.95),ac.sampleRate);
-  const data=noiseData.getChannelData(0);
-  for(let i=0;i<data.length;i++)data[i]=Math.random()*2-1;
-  function syllable(at,duration,base,ending,volume){
-   const low=ac.createOscillator(),upper=ac.createOscillator();
-   low.type='sawtooth';upper.type='triangle';
-   const vocal=ac.createBiquadFilter();vocal.type='lowpass';vocal.frequency.setValueAtTime(660,at);vocal.frequency.exponentialRampToValueAtTime(350,at+duration);
-   vocal.Q.value=.8;
-   const envelope=ac.createGain();envelope.gain.setValueAtTime(.0001,at);envelope.gain.linearRampToValueAtTime(volume,at+.065);
-   envelope.gain.setValueAtTime(volume,at+duration*.52);envelope.gain.exponentialRampToValueAtTime(.0001,at+duration);
-   low.frequency.setValueAtTime(base,at);low.frequency.linearRampToValueAtTime(base*.88,at+duration*.34);low.frequency.exponentialRampToValueAtTime(ending,at+duration);
-   upper.frequency.setValueAtTime(base*1.5,at);upper.frequency.exponentialRampToValueAtTime(ending*1.5,at+duration);
-   const upperGain=ac.createGain();upperGain.gain.value=.17;
-   low.connect(vocal);upper.connect(upperGain);upperGain.connect(vocal);vocal.connect(envelope);envelope.connect(master);
-   low.start(at);upper.start(at);low.stop(at+duration+.01);upper.stop(at+duration+.01);
-   // Air and a soft rasp make the growl resemble a tiny animal.
-   const breath=ac.createBufferSource();breath.buffer=noiseData;
-   const breathFilter=ac.createBiquadFilter();breathFilter.type='bandpass';breathFilter.frequency.value=470;breathFilter.Q.value=.6;
-   const breathGain=ac.createGain();breathGain.gain.setValueAtTime(.0001,at);breathGain.gain.linearRampToValueAtTime(volume*.31,at+.08);breathGain.gain.exponentialRampToValueAtTime(.0001,at+duration);
-   breath.connect(breathFilter);breathFilter.connect(breathGain);breathGain.connect(master);
-   breath.start(at,0,duration);breath.stop(at+duration);
+  const sr=ac.sampleRate,duration=1.18,n=Math.floor(sr*duration);
+  const buffer=ac.createBuffer(1,n,sr),samples=buffer.getChannelData(0);
+  let phase=0,rasp=0,breath=0;
+  function pulse(time,at,len){
+   const x=(time-at)/len;if(x<0||x>=1)return 0;
+   return Math.pow(Math.sin(Math.PI*x),.7);
   }
-  syllable(t,.31,165,112,.29);
-  syllable(t+.26,.41,155,95,.33);
-  // A tiny playful, upward 'rrup!' at the end.
-  syllable(t+.68,.19,175,225,.15);
-  setTimeout(()=>ac.close().catch(()=>{}),1450);
+  for(let i=0;i<n;i++){
+   const time=i/sr;
+   // Three uneven animal syllables: grrr ... rrr ... pf!
+   const a=pulse(time,.03,.37),b=pulse(time,.35,.46),c=pulse(time,.85,.20);
+   const weight=a*.92+b*1.05+c*.30;
+   const random=Math.random()*2-1;
+   // Quasi-vocal folds with growly irregularities instead of an even electronic buzz.
+   const tremble=1+.16*Math.sin(2*Math.PI*25*time)+.075*Math.sin(2*Math.PI*39*time);
+   const f0=(97-23*Math.min(1,time/.9)+9*Math.sin(2*Math.PI*4.2*time))*tremble;
+   phase+=2*Math.PI*f0/sr;
+   const throat=Math.sin(phase)+.38*Math.sin(phase*1.98)+.19*Math.sin(phase*3.01);
+   rasp=rasp*.94+random*.06;
+   breath=breath*.64+random*.36;
+   const grit=Math.tanh((throat+rasp*1.7)*2.3);
+   const growl=grit*.51+breath*.22+rasp*.21;
+   const snort=c*(breath*.62+Math.sin(phase)*.13);
+   const shaped=(growl*weight+snort)*(.84+.16*Math.sin(2*Math.PI*16*time));
+   samples[i]=Math.tanh(shaped*1.35)*.55;
+  }
+  const source=ac.createBufferSource();source.buffer=buffer;
+  const filter=ac.createBiquadFilter();filter.type='lowpass';filter.frequency.value=980;filter.Q.value=.45;
+  const gain=ac.createGain();gain.gain.value=.32;
+  source.connect(filter);filter.connect(gain);gain.connect(ac.destination);
+  source.start();
  }catch(e){}
 }
 function playDragonPreview(skinId){
