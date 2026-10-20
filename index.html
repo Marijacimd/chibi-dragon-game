@@ -416,44 +416,34 @@ let previewSkin=selectedSkin,previewEnemySkin=selectedEnemySkin;let previewPlayS
  ctx.save();if(active){const jump=Math.pow(Math.max(0,Math.sin(phase*Math.PI*2.6)),2)*12;ctx.translate(0,-jump);ctx.translate(canvas.width/2,canvas.height/2);ctx.rotate(Math.sin(phase*13)*.085);ctx.translate(-canvas.width/2,-canvas.height/2);previewFlap=Math.sin(phase*19)*5}
  skinEffect(0,0,performance.now(),skin.id);dragon(0,0,performance.now(),skin.id);ctx.restore();previewFlap=0;
  if(active){ctx.save();ctx.textAlign='center';ctx.font='17px system-ui';for(let j=0;j<5;j++){const a=phase*2.3+j*1.2566,px=canvas.width/2+Math.cos(a)*58,py=canvas.height/2+Math.sin(a)*35-10-Math.sin(phase*3+j)*7;ctx.globalAlpha=Math.min(1,Math.max(0,(2600-elapsed)/450));ctx.fillText(j%2?'💜':'✨',px,py)}ctx.restore()}
- document.getElementById('previewName').textContent=skin.emoji+' '+skin.name;document.getElementById('previewStatus').textContent=active?'🐉 Гр-р-р! '+skin.name+' радуется и машет крылышками!':selectedSkin===skin.id?'Этот дракон сейчас выбран.':ownedSkins.includes(skin.id)?'Скин уже куплен. Можешь надеть его!':'Посмотри, как выглядит дракон. Цена: 100 🪙. Предпросмотр бесплатный.'}else if(shopMode==='bonuses'){drawPawShield(0,0,performance.now());document.getElementById('previewName').textContent='🐾 Лапка-защитница';document.getElementById('previewStatus').textContent='Фиолетово-розовый щит спасает от одного укуса. В запасе: '+shieldCount+'. Цена: 60 🪙.'}else{const skin=enemySkinInfo.find(s=>s.id===previewEnemySkin)||enemySkinInfo[0];monster(0,0,performance.now(),0,skin.id);document.getElementById('previewName').textContent=skin.emoji+' '+skin.name;document.getElementById('previewStatus').textContent=selectedEnemySkin===skin.id?'Этот вид врагов сейчас выбран.':ownedEnemySkins.includes(skin.id)?'Скин врагов уже куплен. Можешь надеть его!':'Посмотри, как выглядит монстр. Цена: '+(skin.id==='toxic'?150:100)+' 🪙. Предпросмотр бесплатный.'}ctx.restore()}finally{ctx=oldCtx;cell=oldCell;offx=oldOffX;offy=oldOffY}}function playCuteDragonGrowl(){
- // Organic little-creature grumble. No steady alert-like oscillator or internet dependency.
+ document.getElementById('previewName').textContent=skin.emoji+' '+skin.name;document.getElementById('previewStatus').textContent=active?'🐉 Гр-р-р! '+skin.name+' радуется и машет крылышками!':selectedSkin===skin.id?'Этот дракон сейчас выбран.':ownedSkins.includes(skin.id)?'Скин уже куплен. Можешь надеть его!':'Посмотри, как выглядит дракон. Цена: 100 🪙. Предпросмотр бесплатный.'}else if(shopMode==='bonuses'){drawPawShield(0,0,performance.now());document.getElementById('previewName').textContent='🐾 Лапка-защитница';document.getElementById('previewStatus').textContent='Фиолетово-розовый щит спасает от одного укуса. В запасе: '+shieldCount+'. Цена: 60 🪙.'}else{const skin=enemySkinInfo.find(s=>s.id===previewEnemySkin)||enemySkinInfo[0];monster(0,0,performance.now(),0,skin.id);document.getElementById('previewName').textContent=skin.emoji+' '+skin.name;document.getElementById('previewStatus').textContent=selectedEnemySkin===skin.id?'Этот вид врагов сейчас выбран.':ownedEnemySkins.includes(skin.id)?'Скин врагов уже куплен. Можешь надеть его!':'Посмотри, как выглядит монстр. Цена: '+(skin.id==='toxic'?150:100)+' 🪙. Предпросмотр бесплатный.'}ctx.restore()}finally{ctx=oldCtx;cell=oldCell;offx=oldOffX;offy=oldOffY}}// Real cat purring, public domain, by Mysid (Wikimedia Commons).
+// https://commons.wikimedia.org/wiki/File:Purring_cat.oga
+// The clip plays only for about 1.5 seconds on shop preview taps.
+const gryPurrUrl='https://upload.wikimedia.org/wikipedia/commons/transcoded/d/db/Purring_cat.oga/Purring_cat.oga.mp3';
+const gryPurr=new Audio(gryPurrUrl);
+gryPurr.preload='auto';
+gryPurr.volume=.52;
+let gryPurrStopTimer=0;
+function playCuteDragonGrowl(){
  try{
-  const AC=window.AudioContext||window.webkitAudioContext;
-  if(!AC)return;
-  const ac=window.gryGrowlContext||(window.gryGrowlContext=new AC());
-  if(ac.state==='suspended')ac.resume().catch(()=>{});
-  const sr=ac.sampleRate,duration=1.18,n=Math.floor(sr*duration);
-  const buffer=ac.createBuffer(1,n,sr),samples=buffer.getChannelData(0);
-  let phase=0,rasp=0,breath=0;
-  function pulse(time,at,len){
-   const x=(time-at)/len;if(x<0||x>=1)return 0;
-   return Math.pow(Math.sin(Math.PI*x),.7);
+  if(gryPurrStopTimer){clearTimeout(gryPurrStopTimer);gryPurrStopTimer=0}
+  gryPurr.pause();
+  // Starting slightly into the recording gives an immediate soft rumble.
+  const startAt=1.25,clipLength=1.55;
+  try{gryPurr.currentTime=startAt}catch(e){}
+  gryPurr.volume=.52;
+  const promise=gryPurr.play();
+  if(promise&&typeof promise.catch==='function')promise.catch(()=>{});
+  // End the snippet gently instead of playing the original 10-second recording.
+  const begun=Date.now();
+  function fadePurr(){
+   const elapsed=(Date.now()-begun)/1000;
+   const remaining=clipLength-elapsed;
+   if(remaining<=0){gryPurr.pause();gryPurr.volume=.52;gryPurrStopTimer=0;return}
+   if(remaining<.25)gryPurr.volume=Math.max(.025,.52*(remaining/.25));
+   gryPurrStopTimer=setTimeout(fadePurr,45);
   }
-  for(let i=0;i<n;i++){
-   const time=i/sr;
-   // Three uneven animal syllables: grrr ... rrr ... pf!
-   const a=pulse(time,.03,.37),b=pulse(time,.35,.46),c=pulse(time,.85,.20);
-   const weight=a*.92+b*1.05+c*.30;
-   const random=Math.random()*2-1;
-   // Quasi-vocal folds with growly irregularities instead of an even electronic buzz.
-   const tremble=1+.16*Math.sin(2*Math.PI*25*time)+.075*Math.sin(2*Math.PI*39*time);
-   const f0=(97-23*Math.min(1,time/.9)+9*Math.sin(2*Math.PI*4.2*time))*tremble;
-   phase+=2*Math.PI*f0/sr;
-   const throat=Math.sin(phase)+.38*Math.sin(phase*1.98)+.19*Math.sin(phase*3.01);
-   rasp=rasp*.94+random*.06;
-   breath=breath*.64+random*.36;
-   const grit=Math.tanh((throat+rasp*1.7)*2.3);
-   const growl=grit*.51+breath*.22+rasp*.21;
-   const snort=c*(breath*.62+Math.sin(phase)*.13);
-   const shaped=(growl*weight+snort)*(.84+.16*Math.sin(2*Math.PI*16*time));
-   samples[i]=Math.tanh(shaped*1.35)*.55;
-  }
-  const source=ac.createBufferSource();source.buffer=buffer;
-  const filter=ac.createBiquadFilter();filter.type='lowpass';filter.frequency.value=980;filter.Q.value=.45;
-  const gain=ac.createGain();gain.gain.value=.32;
-  source.connect(filter);filter.connect(gain);gain.connect(ac.destination);
-  source.start();
+  gryPurrStopTimer=setTimeout(fadePurr,45);
  }catch(e){}
 }
 function playDragonPreview(skinId){
