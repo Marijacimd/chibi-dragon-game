@@ -1,0 +1,584 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="theme-color" content="#241b4c"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Чиби-дракон"><link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="icon-192.png"><title>Чиби-дракон: Кристальный лабиринт</title><style>
+:root{color-scheme:dark}*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 50% 0,#49316c,#151326 75%);font-family:system-ui,'Segoe UI',sans-serif;color:#fff3ff;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:14px}.shell{width:min(100%,890px)}h1{text-align:center;font-size:clamp(22px,4vw,34px);margin:4px 0 12px;color:#eecbff;text-shadow:0 3px 12px #8b38c5}.hud{display:flex;gap:10px;flex-wrap:wrap;justify-content:space-between;align-items:center;margin-bottom:10px}.pill{background:#302648;border:1px solid #69558c;border-radius:14px;padding:9px 14px;font-weight:750}.pill b{color:#8cffb0}.stage{border:6px solid #7652a7;border-radius:22px;box-shadow:0 14px 55px #080512aa;overflow:hidden;background:#191426;position:relative}canvas{display:block;width:100%;height:auto;aspect-ratio:auto;touch-action:none}.toast{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:#201630ed;border:2px solid #bd94ea;border-radius:22px;padding:22px 28px;text-align:center;min-width:min(85%,390px);box-shadow:0 12px 45px #0009}.toast h2{margin:0 0 8px;font-size:26px}.toast p{line-height:1.5;margin:0 0 14px}.toast button,.action{background:#9b65e7;color:white;border:0;border-radius:12px;padding:11px 20px;font-weight:800;font-size:16px;cursor:pointer}.toast button:hover,.action:hover{background:#bb83ff}.foot{display:flex;gap:8px;flex-wrap:wrap;justify-content:space-between;align-items:center;margin-top:11px}.hint{font-size:13px;opacity:.87}.pad{display:grid;grid-template-columns:repeat(3,47px);grid-template-rows:repeat(2,42px);gap:4px;justify-content:center;margin:14px auto 0;user-select:none}.pad button{border:1px solid #9d81cc;border-radius:11px;background:#453365;color:#fff;font-size:23px;touch-action:none}.pad button:active{background:#9869df}.pad .up{grid-column:2}.pad .left{grid-column:1;grid-row:2}.pad .down{grid-column:2;grid-row:2}.pad .right{grid-column:3;grid-row:2}.pad{grid-template-columns:repeat(3,70px);grid-template-rows:repeat(2,62px);gap:8px}.pad button{font-size:27px;border-radius:16px;box-shadow:0 4px 12px #0005}.pad button.pressed{background:#a674ec;transform:scale(.96)}body.keyboard-mode .pad{display:none}body.touch-mode .pad{display:grid}body.touch-mode .hint{font-size:13px}body.touch-mode .stage{border-width:4px}@media(max-width:420px){.hud{gap:6px}.pill{padding:6px 8px;font-size:12px}.pad{grid-template-columns:repeat(3,64px);grid-template-rows:repeat(2,58px)}}
+.shop-panel{position:fixed;inset:0;background:#0a0719dc;z-index:20;display:none;align-items:center;justify-content:center;padding:15px}.shop-panel.visible{display:flex}.shop-inner{width:min(570px,100%);max-height:90vh;overflow:auto;background:#302044;border:2px solid #ac83e8;border-radius:22px;padding:20px;box-shadow:0 20px 70px #000b}.shop-head{display:flex;justify-content:space-between;align-items:center;gap:10px}.shop-head h2{margin:0}.shop-preview{display:flex;align-items:center;gap:16px;background:linear-gradient(125deg,#4a2e70,#251b3e);padding:12px;border:1px solid #8266b1;border-radius:17px;margin-top:12px}.shop-preview canvas{display:block;width:132px;max-width:132px;height:128px;flex:0 0 132px;object-fit:contain}.shop-preview>div{min-width:0;flex:1}.shop-preview p{font-size:13px;line-height:1.5;color:#dfc8f4;margin:8px 0 0}.skin.previewing{border-color:#ffd776;box-shadow:0 0 0 2px #ffd77655}.skin{cursor:pointer}.shop-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px;margin-top:18px}.skin{background:#221934;border:1px solid #70528d;border-radius:17px;padding:14px;text-align:center}.skin .emoji{font-size:38px;display:block;margin:5px}.skin b{display:block;margin-bottom:5px}.skin button{margin-top:10px;cursor:pointer;border:0;background:#9b65e7;color:white;border-radius:9px;padding:9px;width:100%;font-weight:700}.skin button:disabled{background:#554666;cursor:default}.skin.selected{border-color:#88f6ad}.coin-amount{color:#ffdf6c;font-weight:800}@media(max-width:440px){.shop-grid{grid-template-columns:1fr}.shop-preview{gap:9px;padding:9px}.shop-preview canvas{width:108px;max-width:108px;height:105px;flex-basis:108px}} 
+/* Экран приветствия: показывается лишь при первом открытии страницы */
+.loading-screen{position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;overflow:hidden;background:radial-gradient(ellipse at 50% 30%,#67449b 0%,#2c204d 52%,#141024 100%);color:#fff4ff;transition:opacity .48s ease,visibility .48s ease}
+.loading-screen.finished{opacity:0;visibility:hidden;pointer-events:none}
+.loading-stars{position:absolute;inset:0;pointer-events:none;background-image:radial-gradient(circle,#f7dbff 1.4px,transparent 2px),radial-gradient(circle,#ffe3ad 1px,transparent 2px);background-size:108px 113px,81px 95px;background-position:12px 25px,49px 64px;opacity:.56;animation:starsMove 9s linear infinite}
+.loading-card{position:relative;display:flex;align-items:center;flex-direction:column;text-align:center;gap:12px;width:min(90vw,400px);padding:27px 24px;border-radius:28px;background:#3b2a61dc;border:2px solid #b38be9;box-shadow:0 22px 75px #080514aa}
+.loading-dragon{font-size:92px;line-height:1.15;filter:drop-shadow(0 8px 14px #e3aaff80);animation:dragonBounce 1.35s ease-in-out infinite;user-select:none}
+.loading-card h2{font-size:clamp(23px,5vw,30px);margin:0;color:#f6d6ff}
+.loading-card p{margin:0;color:#e1cbf9;font-size:15px}
+.loading-bar{width:100%;max-width:300px;height:18px;margin:8px 0 2px;padding:3px;background:#211735;border:1px solid #ae89e1;border-radius:99px;overflow:hidden}
+.loading-fill{width:0;height:100%;border-radius:99px;background:linear-gradient(90deg,#ba83ff,#f5b4e7,#a3ffd0);animation:loadFill 1.65s ease-in-out forwards}
+.loading-sparkles{letter-spacing:14px;font-size:20px;color:#ffecb2;animation:twinkle 1s ease-in-out infinite alternate}
+@keyframes dragonBounce{0%,100%{transform:translateY(2px) rotate(-5deg)}50%{transform:translateY(-11px) rotate(5deg)}}
+@keyframes starsMove{to{background-position:12px 138px,49px 159px}}
+@keyframes twinkle{to{opacity:.35;transform:scale(.94)}}
+@keyframes loadFill{0%{width:0}75%{width:82%}100%{width:100%}}
+@media(prefers-reduced-motion:reduce){.loading-dragon,.loading-stars,.loading-sparkles{animation:none}.loading-fill{animation:loadFill 1.65s linear forwards}}
+
+.pause-toggle{position:absolute;top:12px;right:12px;z-index:8;border:2px solid #e5c5ff;background:#422967eb;color:white;border-radius:14px;padding:10px 14px;font-size:17px;font-weight:800;cursor:pointer;box-shadow:0 3px 14px #0008;touch-action:manipulation}
+.pause-toggle:hover{background:#67438f}.pause-screen{position:absolute;inset:0;z-index:7;background:#130c27b8;display:none;align-items:center;justify-content:center;text-align:center;pointer-events:none}.pause-screen.visible{display:flex}.pause-card{border:2px solid #dfb4ff;background:#322148f0;padding:24px 30px;border-radius:22px;box-shadow:0 12px 40px #0007}.pause-card h2{margin:0 0 7px}.pause-card p{margin:0}.pause-card{pointer-events:auto}.pause-menu-button{margin-top:16px;background:#a76be0;color:white;border:2px solid #edceff;padding:12px 22px;border-radius:14px;font-size:16px;font-weight:800;cursor:pointer}
+
+/* Virtual analog stick for touch controls */
+.joystick-area{display:none;justify-content:flex-start;align-items:center;padding:12px 0 4px 14px;min-height:192px;touch-action:none;user-select:none;-webkit-user-select:none}
+body.touch-mode .joystick-area{display:flex}body.touch-mode .pad{display:none}
+.joystick-base{position:relative;width:174px;height:174px;border-radius:50%;background:radial-gradient(circle,#6d519d66,#342449d9);border:3px solid #bf9dff9c;box-shadow:inset 0 3px 18px #1a0e3488,0 8px 22px #110a2488;touch-action:none}
+.joystick-base::after{content:'✦';position:absolute;inset:0;display:grid;place-items:center;color:#ddc5ff4d;font-size:32px;pointer-events:none}
+.joystick-thumb{position:absolute;left:50%;top:50%;width:80px;height:80px;transform:translate(-50%,-50%);border-radius:50%;border:3px solid #f2dbff;background:radial-gradient(circle at 30% 25%,#c9a4ff,#8156c8);box-shadow:0 5px 17px #0e052ca8;pointer-events:none;z-index:2;display:grid;place-items:center;font-size:29px}
+@media(max-width:480px){.joystick-area{min-height:190px;padding-left:10px}}
+
+.main-menu{position:fixed;inset:0;z-index:15;display:flex;align-items:center;justify-content:center;padding:18px;background:radial-gradient(ellipse at 50% 20%,#60468ddd,#171026f5 78%);backdrop-filter:blur(6px)}
+.main-menu[hidden]{display:none}.menu-card{width:min(430px,96vw);padding:28px 24px;background:linear-gradient(155deg,#453069,#251c43);border:2px solid #c59aff;border-radius:28px;text-align:center;box-shadow:0 25px 70px #05030bbc}.menu-dragon{font-size:75px;filter:drop-shadow(0 6px 16px #be7afe);animation:dragonBounce 1.6s ease-in-out infinite}.menu-card h2{font-size:clamp(27px,6vw,34px);margin:8px 0;color:#f5d9ff}.menu-card p{color:#e4cff7;font-size:14px;margin:8px 0 20px}.menu-actions{display:grid;gap:12px}.menu-actions button{padding:15px 20px;font-size:18px;border-radius:16px;border:1px solid #e1b7ff;background:#7651ac;color:white;font-weight:800;cursor:pointer}.menu-actions button:first-child{background:linear-gradient(120deg,#d16cff,#915bfb);font-size:22px}.menu-actions button:active{transform:scale(.98)}
+#themeButton,#shopOpen{display:none!important}
+
+.level-panel{position:fixed;inset:0;z-index:17;display:none;align-items:center;justify-content:center;padding:16px;background:#110b24e8}.level-panel.visible{display:flex}.level-card{width:min(520px,96vw);max-height:85vh;overflow-y:auto;background:linear-gradient(150deg,#47306c,#241837);border:2px solid #c49af8;border-radius:24px;padding:20px;box-shadow:0 22px 65px #000a}.level-head{display:flex;align-items:center;justify-content:space-between;gap:10px}.level-head h2{margin:0;font-size:24px}.level-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px;margin:16px 0}.level-grid button{padding:13px 3px;border:1px solid #b98bfa;border-radius:12px;background:#7655ad;color:white;font-size:16px;font-weight:800;cursor:pointer;min-height:52px}.level-grid button:disabled{opacity:.4;cursor:not-allowed;background:#3e3550}.level-grid button.current{border:2px solid #ffe187;background:#a174d0}.level-grid button.blackout{box-shadow:inset 0 0 0 2px #3b2b5e}.level-head .action{font-size:14px;padding:10px}.level-help{font-size:13px;color:#e3d0ff;margin:8px 0}
+
+/* Bright mobile maze presentation inspired by the supplied reference video. */
+:root{color-scheme:light}
+body{background:linear-gradient(155deg,#b4e7ff 0%,#d8baff 45%,#f8e2ac 100%);color:#503657;align-items:flex-start}
+.shell{width:min(100%,890px);padding:12px 12px 20px;border-radius:28px;background:linear-gradient(#fff9e9,#fff4df);box-shadow:0 18px 55px #4e527d48;border:4px solid #fff}
+h1{font-size:clamp(22px,4vw,29px);color:#834bb4;text-shadow:0 2px #fff;margin:4px 0 12px}
+.hud{gap:5px;justify-content:center}.hud .pill{border-radius:12px!important;background:#fff7e8!important;color:#72513e!important;border:1px solid #e3c5a6!important;box-shadow:0 2px 0 #dbb992;font-size:12px!important;padding:5px 7px!important}
+.stage{border:6px solid #bc9a76!important;border-radius:17px!important;box-shadow:inset 0 0 0 3px #fff8df,0 9px 22px #6c4d5360!important;background:#d6b995!important;overflow:hidden}
+#game{display:block;width:100%;height:auto;aspect-ratio:auto;image-rendering:auto}
+.pause-toggle{background:#22a6c4!important;border:2px solid white!important;color:white!important;border-radius:50px!important;box-shadow:0 4px 0 #11708e!important}
+.foot{justify-content:center}.foot .hint{color:#785b77}.action{border-radius:14px!important}
+.main-menu{background:radial-gradient(circle at 12% 12%,#ffffffbb 0 3%,transparent 4%),radial-gradient(circle at 83% 26%,#fff8b5 0 4%,transparent 5%),linear-gradient(170deg,#9fe5ff 0%,#d8e6ff 38%,#f7d9b5 72%,#c2ecab 100%);backdrop-filter:none}
+.menu-card{position:relative;width:min(420px,95vw);background:linear-gradient(170deg,#ffffffd9,#fff0cfec);border:5px solid white;border-radius:32px;padding:30px 22px 25px;box-shadow:0 15px 0 #e3b994,0 23px 50px #694c7966;color:#6e457b}
+.menu-card::before{content:'🌼   ✨   🌸';position:absolute;top:-26px;left:0;right:0;text-align:center;font-size:28px;filter:drop-shadow(0 2px 2px #fff)}
+.menu-dragon{font-size:94px;filter:drop-shadow(0 8px 3px #ad80bb55)}
+.menu-card h2{color:#8c43ae;text-shadow:2px 3px 0 white;font-size:clamp(29px,6vw,39px);line-height:1.1}
+.menu-card p{color:#825b72}
+.menu-actions button{border:3px solid #fff!important;border-radius:20px!important;box-shadow:0 5px 0 #b88d73,0 8px 16px #8d718433!important;font-weight:900!important}
+#menuPlay{background:linear-gradient(#83ed83,#2ac866)!important;color:#fff!important;font-size:25px!important;text-shadow:0 2px #299451}
+#menuLevels{background:linear-gradient(#ffe69c,#ffc35c)!important;color:#86572c!important}
+#menuShop{background:linear-gradient(#ffbbde,#fa83ba)!important;color:#74345b!important}
+#menuTheme{background:linear-gradient(#d4c2ff,#a78cf2)!important;color:#4c377e!important}
+#dandyAudioPicker{background:#ffffff9e!important;color:#7a5585!important}
+@media(max-width:600px){body{padding:0}.shell{width:100%;border-radius:0;padding:7px 5px 18px;border-width:0}.hud .pill{font-size:11px!important;padding:4px 5px!important}.stage{border-width:4px!important}}
+
+/* The main menu follows the selected maze world. */
+.main-menu{background:radial-gradient(circle at 15% 12%,#ffffff77 0 3%,transparent 4%),radial-gradient(circle at 83% 25%,#fff8b566 0 4%,transparent 5%),linear-gradient(155deg,var(--menu-sky,#c5adf1),var(--menu-middle,#8b69b3) 50%,var(--menu-ground,#392957))!important;transition:background .35s}
+.menu-card{background:linear-gradient(165deg,var(--menu-card-top,#fff6ffed),var(--menu-card-bottom,#e6cbf4ee))!important;border-color:var(--menu-border,#f8e7ff)!important;box-shadow:0 12px 0 var(--menu-shadow,#7d5a9e),0 25px 55px #120c3277!important;color:var(--menu-ink,#563269)!important}
+.menu-card::before{content:var(--menu-decor,'💜   ✨   💎')!important}
+.menu-card h2{color:var(--menu-heading,#673c95)!important}
+.menu-card p{color:var(--menu-ink,#563269)!important}
+.menu-actions button{box-shadow:0 5px 0 var(--menu-shadow,#7d5a9e),0 8px 16px #0002!important}
+#menuPlay{background:linear-gradient(var(--menu-play-top,#a995f3),var(--menu-play-bottom,#7455c3))!important;color:white!important}
+#menuLevels{background:linear-gradient(var(--menu-secondary-top,#dfd5ff),var(--menu-secondary-bottom,#b1a1ef))!important;color:var(--menu-button-ink,#413267)!important}
+#menuShop{background:linear-gradient(var(--menu-secondary-top,#dfd5ff),var(--menu-secondary-bottom,#b1a1ef))!important;color:var(--menu-button-ink,#413267)!important}
+#menuTheme{background:linear-gradient(var(--menu-secondary-top,#dfd5ff),var(--menu-secondary-bottom,#b1a1ef))!important;color:var(--menu-button-ink,#413267)!important}
+
+/* Readable labels in every theme: dark dialogs always use light text. */
+.toast,.pause-card,.shop-inner,.level-card,.loading-card{color:#fff7ff!important}
+.toast h2,.pause-card h2,.shop-head h2,.level-head h2,.loading-card h2{color:#fff7ff!important;text-shadow:0 2px 3px #150b2eaa}
+.toast p,.pause-card p,.shop-inner p,.level-help,.loading-card p{color:#f5eaff!important}
+.shop-preview,.shop-preview p,.skin,.skin b{color:#fff7ff!important}
+.skin button,.toast button,.pause-menu-button,.shop-head button,.level-head .action{color:#fff!important;text-shadow:0 1px 2px #28143b88}
+.shop-tabs{display:flex;gap:10px;margin-top:12px}.shop-tabs button{flex:1;border:1px solid #8a67be;background:#4a326b;color:#fff;border-radius:12px;padding:10px 12px;font-weight:800;cursor:pointer}.shop-tabs button.active{background:#9b65e7;box-shadow:0 0 0 2px #ffffff1f inset}
+.skin button:disabled{color:#fff!important;opacity:1}
+.level-grid button{color:#fff!important;text-shadow:0 1px 3px #27173c}
+.level-grid button:disabled{opacity:1;color:#eae1f3!important;background:#413650!important;border-color:#71657d}
+.level-help{line-height:1.5}
+/* Main game lies on a dark world background; maintain legible HUD and footer. */
+h1{color:#fff4ff!important;text-shadow:0 2px 5px #20102b,0 0 10px #20102b!important}
+.foot .hint{color:#fff7ff!important;opacity:1;text-shadow:0 2px 4px #100a19,0 0 5px #100a19}
+.foot .action{color:#fff!important;text-shadow:0 1px 2px #22102c}
+.hud .pill{color:#4f352e!important}
+.hud .pill b{color:#176441!important}
+/* Theme-colored menus keep a visible dark foreground on pastel surfaces. */
+.menu-card h2{color:var(--menu-heading,#563269)!important;text-shadow:0 2px 1px #ffffffd9!important}
+.menu-card p{color:var(--menu-ink,#563269)!important;text-shadow:0 1px 1px #fff9!important}
+#menuPlay{color:#fff!important;text-shadow:0 2px 3px #203b3799!important}
+#menuMusic{background:linear-gradient(#b9f3e8,#85ccdb)!important;color:#254e64!important;text-shadow:0 1px #ffffffb5!important}
+#menuLevels,#menuShop,#menuTheme{color:var(--menu-button-ink,#413267)!important;text-shadow:0 1px 1px #ffffffa6!important}
+#dandyAudioPicker{color:#443252!important;background:#fff8e9!important;border:2px solid #aa80ac!important}
+@media(max-width:600px){.menu-actions button{font-size:17px}.toast{padding:17px 15px}.toast h2{font-size:22px}}
+
+/* Secret code is a tiny decorative inscription in the world behind the main menu. */
+.menu-secret{position:absolute;right:3%;bottom:5%;z-index:0;color:#fffdf2;font-size:clamp(11px,1.35vw,15px);letter-spacing:2px;font-weight:900;text-shadow:0 2px 5px #1d174e,0 0 9px #452e8b;transform:rotate(-7deg);opacity:.76;pointer-events:none;user-select:text}
+.menu-card{z-index:1}.promo-panel{position:fixed;inset:0;background:#0a0719db;display:none;align-items:center;justify-content:center;z-index:35;padding:14px}.promo-panel.visible{display:flex}.promo-card{width:min(410px,95vw);background:linear-gradient(150deg,#44315f,#211936);border:2px solid #d6a7ff;border-radius:24px;padding:22px;text-align:center;color:#fff7ff;box-shadow:0 18px 55px #0009}.promo-card h2{margin:5px 0 10px}.promo-card p{line-height:1.45}.promo-card input{width:100%;box-sizing:border-box;font-size:19px;letter-spacing:1px;border:2px solid #d5b2f5;border-radius:13px;padding:13px;text-transform:uppercase;background:#fff;color:#2e2345}.promo-card button{background:#9972e7;color:white;border:2px solid #d5b2f5;border-radius:12px;font-size:16px;font-weight:800;padding:11px 15px;margin-top:12px;cursor:pointer}.promo-card button:focus-visible,.promo-card input:focus-visible{outline:3px solid #ffda7a;outline-offset:3px}#promoResult{min-height:22px;color:#ffe6a5;font-weight:750}#menuPromo{background:linear-gradient(#ffe7a1,#ffc46c)!important;color:#683d42!important;text-shadow:0 1px #fff9}
+.level-grid button{min-height:69px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:8px 2px}.level-number{font-size:18px;font-weight:900}.level-enemy-label{font-size:10px;line-height:1.25;font-weight:700;white-space:normal}.level-grid{gap:7px}@media(max-width:440px){.level-grid{grid-template-columns:repeat(4,minmax(0,1fr))}.level-enemy-label{font-size:10px}}
+
+/* Mobile usability: short screens, browser toolbars, safe areas and touch targets. */
+@media(max-width:600px){
+ html,body{max-width:100%;overflow-x:hidden}
+ .main-menu,.level-panel,.shop-panel,.promo-panel{overflow-y:auto;align-items:safe center;overscroll-behavior:contain;padding:calc(10px + env(safe-area-inset-top,0px)) 10px calc(14px + env(safe-area-inset-bottom,0px))}
+ .main-menu{align-items:safe center}
+ .menu-card{width:min(100%,420px);padding:17px 16px 16px;margin:auto}
+ .menu-card::before{top:-17px;font-size:18px}
+ .menu-dragon{font-size:clamp(44px,10vh,75px)}
+ .menu-card h2{font-size:clamp(23px,5vw,33px);margin:3px 0}
+ .menu-card p{margin:6px 0 9px;font-size:13px}
+ .menu-actions{gap:7px}
+ .menu-actions button{padding:10px 13px!important;min-height:43px;font-size:16px!important}
+ .level-card,.shop-inner,.promo-card{max-height:calc(100dvh - 28px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));overflow-y:auto;overscroll-behavior:contain}
+ .level-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+ .level-grid button{min-height:65px}
+ .level-head h2{font-size:21px}
+ .level-card{padding:13px}
+ .shop-inner{padding:14px}
+ .shop-tabs button{min-height:43px}
+ .hud{margin-bottom:5px;gap:4px}
+ .hud .pill{font-size:10px!important;padding:4px!important}
+ .pause-toggle{top:5px;right:5px;font-size:13px;padding:6px 9px}
+ .joystick-area{justify-content:center;padding:12px 0 calc(12px + env(safe-area-inset-bottom,0px));min-height:195px}
+ .joystick-base{width:174px;height:174px}
+ .joystick-thumb{width:80px;height:80px}
+ .foot{gap:7px}
+ .foot .hint{font-size:11px}
+ .toast{width:min(95%,420px);max-height:90%;overflow-y:auto}
+}
+@media(max-height:640px) and (max-width:600px){
+ .menu-card{padding:10px 13px}
+ .menu-dragon{font-size:42px}
+ .menu-card h2{font-size:23px}
+ .menu-card p{margin:3px 0 6px}
+ .menu-actions{gap:5px}
+ .menu-actions button{padding:7px 9px!important;min-height:38px}
+}
+
+/* Mobile fullscreen / immersive view */
+.fullscreen-button{display:none;border:2px solid #c8abff;background:#46316d;color:white;border-radius:15px;padding:13px 12px;min-height:49px;font:800 13px system-ui,sans-serif;cursor:pointer;box-shadow:0 6px 18px #08041775;touch-action:manipulation;white-space:nowrap}
+body.touch-mode .fullscreen-button{display:block;position:absolute;top:6px;left:6px;z-index:7;padding:8px 10px;min-height:36px;font-size:12px;border-radius:10px;box-shadow:0 3px 9px #080417aa}
+body.touch-mode .joystick-area{justify-content:center;gap:0;padding-left:0;padding-right:0}
+body.immersive-mode{width:100%;min-height:100dvh;padding:0!important;align-items:flex-start;overflow-x:hidden}
+body.immersive-mode .shell{width:100%;max-width:100%;padding:4px 5px 8px}
+body.immersive-mode h1{font-size:clamp(15px,4vw,22px);margin:1px 0 4px}
+body.immersive-mode .hud{gap:3px;margin-bottom:4px;justify-content:center}
+body.immersive-mode .hud .pill{font-size:10px!important;padding:3px 5px!important}
+body.immersive-mode .stage{border-width:2px!important;border-radius:10px}
+body.immersive-mode .fullscreen-button{top:4px;left:4px}
+body.immersive-mode #game{width:auto;max-width:100%;height:auto;max-height:calc(100dvh - 225px);margin:auto;object-fit:contain}
+body.immersive-mode .joystick-area{justify-content:center;padding:6px 0 max(6px,env(safe-area-inset-bottom));min-height:165px}
+body.immersive-mode .joystick-base{width:150px;height:150px;flex-shrink:0}
+body.immersive-mode .foot{margin-top:4px}
+body.immersive-mode .hint{display:none}
+@media(max-height:650px){body.immersive-mode #game{max-height:calc(100dvh - 180px)}body.immersive-mode .joystick-area{min-height:130px}body.immersive-mode .joystick-base{width:122px;height:122px}}
+@media(max-width:365px){.fullscreen-button{font-size:11px;padding:7px 9px}}
+</style></head><body><main class="shell"><h1>🐉 Чиби-дракон: Кристальный лабиринт</h1><div class="hud"><span class="pill">Уровень: <b id="lvl">1</b></span><span class="pill">💚 Кристаллы: <b id="gems">0 / 3</b></span><span class="pill">💙 Ускорение: <b id="speedTime">—</b></span><span class="pill">🌟 Укрытия: <b id="shelters">2</b></span><span class="pill">🔥 Монстры: <b id="enemies">1</b></span><span class="pill">🪙 Монеты: <b id="coins">0</b></span><span class="pill">🏆 Пройдено: <b id="wins">0</b></span></div><div class="stage"><button id="fullscreenButton" class="fullscreen-button" type="button" aria-pressed="false" title="Развернуть игру на весь экран">⛶ На весь экран</button><button class="pause-toggle" id="pauseButton" type="button" aria-pressed="false">⏸ Пауза</button><div class="pause-screen" id="pauseScreen"><div class="pause-card"><h2>🐉💤 Отдыхаем!</h2><p>Монстры подождут. Нажми «Продолжить» 💜</p><button id="pauseToMenu" class="pause-menu-button" type="button">🏠 Главное меню</button></div></div><canvas id="game" width="840" height="600" aria-label="Лабиринт с фиолетовым драконом, кристаллами и огненными монстрами"></canvas><section class="toast" id="overlay"><h2 id="ovtitle">Помоги чиби-дракону!</h2><p id="ovtext">Собери <strong>3 зелёных кристалла</strong>, избегай огненных монстров и войди в <strong>красный портал</strong>. Жёлтые порталы защищают, пока ты внутри; после выхода восстанавливаются 60 секунд. Управление: стрелки на клавиатуре или джойстик на телефоне.</p><button id="ovbutton">Начать игру ▶</button><button id="reviveButton" style="display:none;margin:9px 0 0;background:#e46ea9">💖 Возродиться за 55 🪙</button><p id="reviveNote" style="display:none;font-size:13px;margin:8px 0 0"></p></section></div><div class="foot"><span class="hint">⌨️ Стрелки · 🟢 Собери 3 кристалла · 🔴 Войди в портал · 🌟 Жёлтые порталы — укрытия на 60 секунд перезарядки · 🔥 Избегай врагов</span><button class="action" id="themeButton" title="Сменить оформление лабиринта">🎨 Тема: Фиолетовая</button><button class="action" id="musicButton" title="Включить или выключить музыку">🔇 Музыка: выкл.</button><button class="action" id="shopOpen">🛍️ Магазин</button><button class="action" id="restart">↻ Начать сначала</button></div><nav class="pad" aria-label="Сенсорное управление"><button class="up" data-dir="up">▲</button><button class="left" data-dir="left">◀</button><button class="down" data-dir="down">▼</button><button class="right" data-dir="right">▶</button></nav><div class="joystick-area" aria-label="Управление драконом джойстиком"><div class="joystick-base" id="joystick" role="group" aria-label="Джойстик движения"><div class="joystick-thumb" id="joystickThumb">🐾</div></div></div><section class="shop-panel" id="shopPanel" role="dialog" aria-modal="true" aria-label="Магазин скинов"><div class="shop-inner"><div class="shop-head"><h2 id="shopTitle">🛍️ Магазин</h2><button class="action" id="shopClose">✕ Закрыть</button></div><p>Твои монеты: <span class="coin-amount" id="shopCoins">0 🪙</span><br>Первое прохождение: +10 🪙, повторное: +5 🪙. Большинство скинов: 100 🪙. Ядовитый огонь: 150 🪙.</p><div class="shop-tabs"><button id="shopTabDragons" class="active" type="button">🐉 Драконы</button><button id="shopTabEnemies" type="button">🔥 Враги</button></div><div class="shop-preview"><canvas id="skinPreview" width="160" height="155" aria-label="Предпросмотр выбранного персонажа"></canvas><div><strong id="previewName">Фиолетовый</strong><p id="previewStatus">Выбери скин ниже, чтобы посмотреть его до покупки.</p></div></div><div class="shop-grid" id="skinGrid"></div></div></section></main><section class="main-menu" id="mainMenu" aria-label="Главное меню игры"><div class="menu-secret" title="Секрет на фоне...">✦ LUNA150 ✦</div><div class="menu-card"><div class="menu-dragon" aria-hidden="true">🐉💜</div><h2>Кристальный лабиринт</h2><p>Выбери дракончика и мир для приключения!</p><div class="menu-actions"><button id="menuPlay" type="button">▶ Играть</button><button id="menuLevels" type="button">🗺️ Уровни</button><button id="menuShop" type="button">🛍️ Магазин драконов</button><button id="menuTheme" type="button">🎨 Тема: Фиолетовая</button><button id="menuMusic" type="button" aria-pressed="true">🎵 Музыка меню: вкл.</button><button id="menuPromo" type="button">🎁 Промокоды</button><div id="dandyAudioPicker" style="display:none;background:#342453d9;padding:12px;border-radius:15px;color:white;font-size:14px;text-align:center">🎹 Оригинальная инструментальная мелодия: сказочный электро-поп без вокала</div></div><p>💚 Три кристалла → красный портал 🔴</p></div></section><section class="promo-panel" id="promoPanel" role="dialog" aria-modal="true" aria-label="Промокоды"><div class="promo-card"><h2>🎁 Секретные промокоды</h2><p>Ищи тайные надписи на фоне меню! Каждый промокод можно применить только один раз.</p><form id="promoForm"><input id="promoInput" type="text" placeholder="Введи секретный код" maxlength="24" autocomplete="off" aria-label="Промокод"/><button type="submit">✨ Получить награду</button></form><p id="promoResult" role="status" aria-live="polite"></p><button type="button" id="promoClose">✕ Закрыть</button></div></section><section class="level-panel" id="levelPanel" role="dialog" aria-modal="true" aria-label="Выбор уровня"><div class="level-card"><div class="level-head"><h2>🗺️ Выбор уровня</h2><button class="action" id="closeLevels" type="button">✕ Назад</button></div><p class="level-help" id="levelHelp"></p><div class="level-grid" id="levelGrid"></div><p class="level-help">✅ 1-й уровень: без монстров и укрытий. 🔥 Со 2-го уровня появляются монстры. 🌑 Каждый пятый уровень — блэкаут, без укрытий. 🔒 Закрытые уровни открываются после прохождения предыдущих.</p></div></section><div class="loading-screen" id="loadingScreen" role="status" aria-live="polite" aria-label="Загрузка игры">
+<div class="loading-stars"></div><div class="loading-card"><div class="loading-dragon" aria-hidden="true">💜🐉</div><h2>Кристальный лабиринт</h2><p>Дракончик готовится к приключению...</p><div class="loading-bar" aria-hidden="true"><div class="loading-fill"></div></div><div class="loading-sparkles" aria-hidden="true">✦ ✧ ✦</div></div></div><script>
+(()=>{'use strict';const themes=[
+{name:'Фиолетовая',outer:'#49316c',outerDark:'#151326',wallA:'#62418e',wallB:'#6a4b99',wallLight:'#8868b3',wallShade:'#3c2c5b',floorA:'#231c36',floorB:'#29203e',dot:'#413354',base:'#171129',border:'#7652a7',enemy:'fire'},
+{name:'Ледяная',outer:'#26688a',outerDark:'#0b253c',wallA:'#357fa1',wallB:'#418eb0',wallLight:'#83d0ec',wallShade:'#1b4d72',floorA:'#123148',floorB:'#173c55',dot:'#4c7898',base:'#091d30',border:'#65bfe9',enemy:'fire'},
+{name:'Океанская',outer:'#0d6782',outerDark:'#082636',wallA:'#2b87a5',wallB:'#3598b5',wallLight:'#92dcf3',wallShade:'#1c5d78',floorA:'#0f4d67',floorB:'#13607d',dot:'#8ee7ff',base:'#08212f',border:'#67d5f3',enemy:'crab'},
+{name:'Лесная',outer:'#315c3a',outerDark:'#10281e',wallA:'#39754c',wallB:'#46845a',wallLight:'#83bb81',wallShade:'#244e39',floorA:'#7a5b2f',floorB:'#9b7a3b',dot:'#c7a45a',base:'#10271a',border:'#67b77d',enemy:'wolf'},
+{name:'Закатная',outer:'#a25358',outerDark:'#361c37',wallA:'#a15a70',wallB:'#b76b7b',wallLight:'#e6a18b',wallShade:'#63354e',floorA:'#422439',floorB:'#4c2b40',dot:'#88506a',base:'#2a192b',border:'#ec9b8c',enemy:'fire'},
+{name:'Хэллоуинская',outer:'#a84e0b',outerDark:'#140a08',wallA:'#b25a14',wallB:'#c96f1e',wallLight:'#ffb25d',wallShade:'#643112',floorA:'#25140f',floorB:'#321a13',dot:'#704326',base:'#120b09',border:'#ff8b22',enemy:'spider'}
+];const themeStorageKey='chibiDragonTheme',autoThemeStep=20;let baseThemeIndex=0,themeIndex=0;try{const n=Number(localStorage.getItem(themeStorageKey));if(Number.isInteger(n)&&n>=0&&n<themes.length)baseThemeIndex=n}catch(e){}function themeForLevel(n){return(baseThemeIndex+Math.floor((Math.max(1,n)-1)/autoThemeStep))%themes.length}const menuStyles=[
+['#cfadff','#9366ca','#43305d','#fff7ff','#e4cef9','#faf0ff','#7b56a8','#653b8e','#60436e','#ab91eb','#7352c3','#e8dcff','#b7a0ee','#443268','💜   ✨   💎'],
+['#c7f4ff','#78cbe9','#1b5885','#f4fdff','#d6f2ff','#ffffff','#4594bd','#226897','#315879','#77d8ef','#238bbf','#daefff','#8cc9f0','#1b5778','❄️   ✨   🧊'],
+['#a5eaff','#46abd2','#155673','#f0fcff','#bfe9f4','#efffff','#328faf','#1c6d94','#245c73','#5dd4dd','#1489ac','#cef6ff','#74d3e4','#165976','🐚   🫧   🐠'],
+['#c1e7a9','#68ae72','#22533a','#f9ffea','#d5eabb','#f4ffe8','#568b51','#396c3b','#3c633e','#80c76d','#358d50','#e0f4c1','#9cd58e','#28583a','🌿   🍄   🌳'],
+['#ffdaa1','#ef8f91','#724263','#fff8ef','#ffdbd5','#fff4e1','#b46c7c','#a54d73','#764760','#ffb277','#dc6c88','#ffe0bd','#f4a5aa','#784257','🌅   ✨   🌺'],
+['#ffb461','#8a3d3e','#28152e','#fff1d4','#ffd0a5','#ffebc4','#ab5c26','#9d501f','#68361f','#ffae37','#d96a19','#ffdfad','#e8a063','#713916','🎃   🦇   🕸️']
+];function styleMainMenu(){const vars=['sky','middle','ground','card-top','card-bottom','border','shadow','heading','ink','play-top','play-bottom','secondary-top','secondary-bottom','button-ink','decor'];const style=document.getElementById('mainMenu').style;menuStyles[themeIndex].forEach((value,i)=>style.setProperty('--menu-'+vars[i],i===14?'"'+value+'"':value))}
+function applyTheme(){const th=themes[themeIndex];styleMainMenu();document.body.style.background=th.enemy==='twisted'?'conic-gradient(from 30deg at 50% 50%,#ff80b5,#ffc66d,#f6e778,#71ddc4,#79a5ff,#b68cf4,#ff80b5)':'radial-gradient(ellipse at 50% 0,'+th.outer+','+th.outerDark+' 75%)';document.getElementById('dandyAudioPicker').style.display=th.enemy==='twisted'?'block':'none';if(typeof syncCustomMusic==='function')syncCustomMusic();document.querySelector('.stage').style.borderColor=th.border;document.getElementById('themeButton').textContent='🎨 Тема: '+th.name;document.getElementById('menuTheme').textContent='🎨 Тема: '+th.name;if(typeof resetMusicSequence==='function')resetMusicSequence()}function syncThemeToLevel(force=false){const nextTheme=themeForLevel(level);if(force||themeIndex!==nextTheme){themeIndex=nextTheme;applyTheme()}} const C=document.getElementById('game');let ctx=C.getContext('2d');const UI={lvl:document.getElementById('lvl'),gems:document.getElementById('gems'),enemies:document.getElementById('enemies'),wins:document.getElementById('wins'),shelters:document.getElementById('shelters'),coins:document.getElementById('coins'),overlay:document.getElementById('overlay'),title:document.getElementById('ovtitle'),text:document.getElementById('ovtext'),button:document.getElementById('ovbutton')};let shopOpen=false,coins=0,selectedSkin='violet',ownedSkins=['violet'],selectedEnemySkin='fire',ownedEnemySkins=['fire'],shopMode='dragons';try{const data=JSON.parse(localStorage.getItem('chibiDragonStore')||'{}');coins=Number.isFinite(data.coins)?Math.max(0,Math.floor(data.coins)):0;ownedSkins=Array.isArray(data.owned)?data.owned.filter(x=>['violet','blue','pink','emerald','sunset','shadow','gold','galaxy','mint','lava','pumpkin','dandy'].includes(x)):['violet'];ownedSkins=[...new Set(ownedSkins)];if(!ownedSkins.includes('violet'))ownedSkins.push('violet');selectedSkin=ownedSkins.includes(data.selected)?data.selected:'violet';ownedEnemySkins=Array.isArray(data.enemyOwned)?data.enemyOwned.filter(x=>['fire','coldfire','toxic','amethyst'].includes(x)):['fire'];ownedEnemySkins=[...new Set(ownedEnemySkins)];if(!ownedEnemySkins.includes('fire'))ownedEnemySkins.push('fire');selectedEnemySkin=ownedEnemySkins.includes(data.enemySelected)?data.enemySelected:'fire'}catch(e){}function saveShop(){try{localStorage.setItem('chibiDragonStore',JSON.stringify({coins,owned:ownedSkins,selected:selectedSkin,enemyOwned:ownedEnemySkins,enemySelected:selectedEnemySkin}))}catch(e){}}const skinInfo=[
+{id:'violet',name:'Фиолетовый',emoji:'💜',palette:{body:'#8d56f3',wings:'#ae73ff',belly:'#f1ccff',head:'#a86bff',horns:'#dba4ff',tail:'#9a61f7',outline:'#56307e',mouth:'#65378e',blush:'#ffb1df',tongue:'#ff79c7',glow:'#c88cff'}},
+{id:'blue',name:'Ледяной',emoji:'💙',palette:{body:'#4f86ff',wings:'#79b9ff',belly:'#d8f2ff',head:'#67a1ff',horns:'#e8fbff',tail:'#5e97ff',outline:'#28559a',mouth:'#376ba7',blush:'#b8eaff',tongue:'#7fd8ff',glow:'#88d9ff',crown:'#7fe7ff'}},
+{id:'pink',name:'Розовая звёздочка',emoji:'🩷',palette:{body:'#ff77c8',wings:'#ff9ddd',belly:'#ffe1f3',head:'#ff8fd4',horns:'#ffd1ec',tail:'#ff89d0',outline:'#a8437d',mouth:'#a14a7a',blush:'#ffc3e6',tongue:'#ff5eb0',glow:'#ffb4e2'}},
+{id:'emerald',name:'Изумрудный',emoji:'💚',palette:{body:'#2fcb7b',wings:'#67e19e',belly:'#dcffe9',head:'#46d58b',horns:'#c1ffe0',tail:'#27b56d',outline:'#23764a',mouth:'#2d8d59',blush:'#aef4cb',tongue:'#53d99a',glow:'#8effbc',crown:'#49d46f'}},
+{id:'sunset',name:'Закатный',emoji:'🌅',palette:{body:'#ff985e',wings:'#ffcf67',belly:'#fff0ce',head:'#ffa46d',horns:'#ffe49c',tail:'#fc785a',outline:'#a64c52',mouth:'#a65052',blush:'#ffb0b2',tongue:'#ff6090',glow:'#ffd180'},effect:'sun'},
+{id:'shadow',name:'Ночной',emoji:'🌙',palette:{body:'#45417f',wings:'#6c65b8',belly:'#cfc9ef',head:'#59549a',horns:'#a8a2dd',tail:'#3f3b75',outline:'#28254e',mouth:'#29294e',blush:'#b193d5',tongue:'#d38ce7',glow:'#a19aff'},effect:'moon'},
+{id:'gold',name:'Золотой',emoji:'👑',palette:{body:'#f4bd3e',wings:'#ffe07c',belly:'#fff3cd',head:'#ffd15a',horns:'#ffecaa',tail:'#dca12a',outline:'#926021',mouth:'#8c5c24',blush:'#ffd7a7',tongue:'#ff8d58',glow:'#ffe480',crown:'#ffef73'},effect:'sparkle'},
+{id:'galaxy',name:'Галактический',emoji:'🌌',palette:{body:'#784edb',wings:'#cb83ed',belly:'#c3e9ff',head:'#8467ed',horns:'#a7f6ff',tail:'#5354cf',outline:'#33246f',mouth:'#4d3278',blush:'#fc9ff7',tongue:'#ff77ce',glow:'#d496ff',crown:'#b993ff'},effect:'star'},
+{id:'mint',name:'Мятный',emoji:'🍃',palette:{body:'#6cdbc7',wings:'#a5f7d9',belly:'#e7fff8',head:'#79e9ce',horns:'#d1ffed',tail:'#4dc5ac',outline:'#2c8077',mouth:'#2c8378',blush:'#a3f7e7',tongue:'#ffb5c8',glow:'#abfff0'},effect:'leaf'},
+{id:'lava',name:'Лавовый',emoji:'🌋',palette:{body:'#d95443',wings:'#ff8749',belly:'#ffddb5',head:'#ef684d',horns:'#ffc35a',tail:'#b93637',outline:'#852b39',mouth:'#8b2c3a',blush:'#ff9f81',tongue:'#ffbd43',glow:'#ff7759',crown:'#ff9b44'},effect:'ember'},
+{id:'pumpkin',name:'Тыквенный дракон',emoji:'🎃',palette:{body:'#fa8a29',wings:'#ffbd47',belly:'#ffe1a2',head:'#ff9d33',horns:'#6aaf50',tail:'#dc6824',outline:'#8b3a20',mouth:'#944125',blush:'#ffc16b',tongue:'#e75a46',glow:'#ffab48',crown:'#59ab4d'},effect:'ember'},
+{id:'dandy',name:'Цветочный дракон ✿',emoji:'🌼',palette:{body:'#f4c861',wings:'#f8a7d1',belly:'#fff1c9',head:'#f6d477',horns:'#ffd9f0',tail:'#e2a74f',outline:'#85599b',mouth:'#8e517c',blush:'#ffacd5',tongue:'#ff80aa',glow:'#fbe3a5',crown:'#ff95ca'},effect:'flower'}
+];const enemySkinInfo=[
+{id:'fire',name:'Огненный',emoji:'🔥',palette:{shadow:'#ff7a29',core:'#fff4ad',mid:'#ffc13b',outer:'#ff7a1a',edge:'#e93a11',stroke:'#8a2c14',face:'#ffd25c',eye:'#fff',pupil:'#38160e',mouth:'#7b2f14',tongue:'#ff4c2a',spark:'#ffefb2'}},
+{id:'coldfire',name:'Холодный огонь',emoji:'🧊',palette:{shadow:'#46c8ff',core:'#ebffff',mid:'#a2f0ff',outer:'#51b7ff',edge:'#2d7be8',stroke:'#1d5aa8',face:'#d6f6ff',eye:'#fff',pupil:'#15355d',mouth:'#2465a0',tongue:'#4ec6ff',spark:'#dbf9ff'}},
+{id:'toxic',name:'Ядовитый огонь',emoji:'☣️',palette:{shadow:'#78ff4f',core:'#f6ffe1',mid:'#c9ff64',outer:'#6ae649',edge:'#2fb928',stroke:'#2c7a1f',face:'#e8ff89',eye:'#fff',pupil:'#1f4115',mouth:'#3d8f2b',tongue:'#7df14e',spark:'#efffc0'}},
+{id:'amethyst',name:'Аметистовый огонь',emoji:'💜',palette:{shadow:'#d37dff',core:'#fff0ff',mid:'#f5a4ff',outer:'#b66aff',edge:'#7f3fe0',stroke:'#67309c',face:'#f8d1ff',eye:'#fff',pupil:'#43205f',mouth:'#6d39a6',tongue:'#ff84e7',spark:'#ffe1ff'}}
+];let secretStar=null,bonusFlash=0,blackoutNoticeUntil=0;const MAX_LEVEL=20;let level=1,wins=0,maze=[],cols=0,rows=0,cell=32,offx=0,offy=0,player={x:1,y:1},portal={x:1,y:1},gems=[],monsters=[],hideouts=[],speedPotions=[],boostUntil=0,hiding=null,playing=false,nextMove=0,last=0,moveDelay=105,invulnerableUntil=0,gameTime=0;const dirs=[[0,-1],[1,0],[0,1],[-1,0]];const rand=n=>Math.floor(Math.random()*n),key=(x,y)=>x+','+y;function openAt(x,y){return x>=0&&y>=0&&x<cols&&y<rows&&maze[y][x]===0}function distanceMap(sx,sy){const m=Array.from({length:rows},()=>Array(cols).fill(Infinity)),q=[[sx,sy]];m[sy][sx]=0;for(let i=0;i<q.length;i++){let [x,y]=q[i];for(let [dx,dy] of dirs){let a=x+dx,b=y+dy;if(openAt(a,b)&&m[b][a]===Infinity){m[b][a]=m[y][x]+1;q.push([a,b])}}}return m}function farthest(sx,sy){let d=distanceMap(sx,sy),best=[sx,sy],v=-1;for(let y=1;y<rows-1;y++)for(let x=1;x<cols-1;x++)if(Number.isFinite(d[y][x])&&d[y][x]>v){v=d[y][x];best=[x,y]}return best}function monsterCountForLevel(n){return n===1?0:Math.min(1+Math.floor((n-1)/2),6)}function generate(){const complexity=Math.min(level-1,13);const mobileLayout=window.matchMedia('(max-width: 600px)').matches;C.width=mobileLayout?600:840;C.height=mobileLayout?840:600;const extraMazeCells=monsterCountForLevel(level)>=4?2:0;cols=(mobileLayout?Math.min(13+2*Math.floor(complexity/4),19):Math.min(19+2*Math.floor(complexity/3),27))+extraMazeCells;rows=(mobileLayout?Math.min(19+2*Math.floor(complexity/3),27):Math.min(13+2*Math.floor(complexity/4),19))+extraMazeCells;if(cols%2===0)cols++;if(rows%2===0)rows++;maze=Array.from({length:rows},()=>Array(cols).fill(1));const stack=[[1,1]];maze[1][1]=0;while(stack.length){let [x,y]=stack[stack.length-1],opts=dirs.map(([a,b])=>[x+a*2,y+b*2,a,b]).filter(([xx,yy])=>xx>0&&yy>0&&xx<cols-1&&yy<rows-1&&maze[yy][xx]===1);if(!opts.length){stack.pop();continue}let [nx,ny,dx,dy]=opts[rand(opts.length)];maze[y+dy][x+dx]=0;maze[ny][nx]=0;stack.push([nx,ny])}for(let i=0;i<Math.round(cols*rows*.027);i++){let x=1+rand(cols-2),y=1+rand(rows-2);if(x%2===1&&y%2===1)continue;if(x===1&&y===1)continue;if(maze[y][x]===1&&[[1,0],[-1,0],[0,1],[0,-1]].filter(([dx,dy])=>openAt(x+dx,y+dy)).length>=2)maze[y][x]=0}player={x:1,y:1};smoothPosition=null;let [px,py]=farthest(1,1);portal={x:px,y:py};const fromStart=distanceMap(1,1),spots=[];for(let y=1;y<rows-1;y++)for(let x=1;x<cols-1;x++)if(openAt(x,y)&&fromStart[y][x]>5&&key(x,y)!==key(px,py))spots.push({x,y,d:fromStart[y][x]});spots.sort((a,b)=>b.d-a.d);const reserve=new Set([key(1,1),key(px,py)]);function pick(preferFar=false){let pool=spots.filter(p=>!reserve.has(key(p.x,p.y)));if(!pool.length)return{x:1,y:1};let range=preferFar?Math.max(1,Math.floor(pool.length*.65)):pool.length,p=pool[rand(range)];reserve.add(key(p.x,p.y));return{x:p.x,y:p.y}}gems=[pick(true),pick(true),pick(true)].map(p=>({...p,taken:false}));hideouts=Array.from({length:level===1||level%5===0?0:Math.min(1+Math.floor((level-1)/2),6)>=3?4:level>=3?3:2},()=>pick(false)).map(p=>({...p,readyAt:0}));speedPotions=[pick(false),...(level>=4?[pick(false)]:[])].map(p=>({...p,taken:false}));boostUntil=0;blackoutNoticeUntil=level%5===0?performance.now()+5000:0;secretStar=Math.random()<.6?{...pick(false),taken:false}:null;bonusFlash=0;hiding=null;monsters=[];const count=monsterCountForLevel(level);for(let i=0;i<count;i++){let p=pick(true);let baseDelay=Math.max(160,225-(level-1)*5);monsters.push({...p,prevX:p.x,prevY:p.y,clock:0,delay:baseDelay+rand(34)})}cell=Math.min((C.width-32)/cols,(C.height-32)/rows);offx=(C.width-cols*cell)/2;offy=(C.height-rows*cell)/2;moveDelay=Math.max(60,94-(level-1)*2);invulnerableUntil=performance.now()+1100;updateHud()}function updateHud(){const now=paused?pausedAt:performance.now();UI.lvl.textContent=level;UI.gems.textContent=gems.filter(g=>g.taken).length+' / 3';UI.enemies.textContent=monsters.length;UI.wins.textContent=wins;UI.coins.textContent=coins;UI.shelters.textContent=hideouts.filter(h=>h.readyAt<=now).length+' / '+hideouts.length;document.getElementById('speedTime').textContent=boostUntil>now?Math.ceil((boostUntil-now)/1000)+' с':'—'}function overlay(title,text,button){playing=false;if(typeof resetJoystick==='function')resetJoystick();UI.title.textContent=title;UI.text.innerHTML=text;UI.button.textContent=button;UI.overlay.hidden=false;UI.overlay.style.display='block';document.getElementById('reviveButton').style.display='none';document.getElementById('reviveNote').style.display='none'}function start(){resetJoystick();if(paused)setPaused(false);level=Math.min(readSavedLevel(),readMaxLevel());wins=0;syncThemeToLevel(true);generate();nextMove=0;held=null;playing=true;UI.overlay.style.display='none';last=performance.now()}function next(){wins++;level=Math.min(MAX_LEVEL,level+1);syncThemeToLevel(true);generate();playing=true;UI.overlay.style.display='none'}function lose(){overlay('🔥 Ой, поймали!','Монстр догнал дракончика! Можно повторить уровень или возродиться за монеты.','Повторить уровень ↻');const revive=document.getElementById('reviveButton'),note=document.getElementById('reviveNote');revive.style.display='inline-block';revive.disabled=coins<55;revive.textContent='💖 Возродиться за 55 🪙';note.style.display='block';note.textContent=coins<55?'Не хватает монет: нужно ещё '+(55-coins)+' 🪙.':'Продолжить уровень с уже собранными кристаллами и временным щитом.'}function reviveDragon(){if(playing||!UI.title.textContent.includes('поймали')||coins<55)return;coins-=55;saveShop();player={x:1,y:1};hiding=null;held=null;heldKey=null;nextMove=0;boostUntil=0;const now=performance.now();invulnerableUntil=now+4000;for(const m of monsters){m.clock=0;const d=distanceMap(player.x,player.y);if(d[m.y]?.[m.x]<5){let best={x:m.x,y:m.y,dist:-1};for(let y=1;y<rows-1;y++)for(let x=1;x<cols-1;x++)if(openAt(x,y)&&Number.isFinite(d[y][x])&&d[y][x]>best.dist&&!gems.some(g=>!g.taken&&g.x===x&&g.y===y)){best={x,y,dist:d[y][x]}}m.x=best.x;m.y=best.y;m.prevX=m.x;m.prevY=m.y}}updateHud();playing=true;UI.overlay.style.display='none';last=now}document.getElementById('reviveButton').addEventListener('click',reviveDragon);function step(dx,dy){if(!playing||shopOpen||paused)return;if(joystickPointer===null)smoothPosition=null;const now=performance.now();if(now<nextMove)return;nextMove=now+(now<boostUntil?Math.max(33,Math.round(moveDelay*.58)):(joystickPointer!==null?Math.max(54,Math.round(moveDelay*.88)):moveDelay));let nx=player.x+dx,ny=player.y+dy;if(!openAt(nx,ny))return;if(hiding){hiding.readyAt=now+60000;hiding=null;updateHud()}player.x=nx;player.y=ny;lastDragonWalkAt=now;for(const potion of speedPotions){if(!potion.taken&&potion.x===nx&&potion.y===ny){potion.taken=true;boostUntil=now+10000;updateHud()}}let shelter=hideouts.find(h=>h.x===nx&&h.y===ny&&h.readyAt<=now);if(shelter){hiding=shelter;updateHud()}for(let gem of gems)if(!gem.taken&&gem.x===nx&&gem.y===ny){gem.taken=true;updateHud()}if(secretStar&&!secretStar.taken&&nx===secretStar.x&&ny===secretStar.y){secretStar.taken=true;coins+=5;bonusFlash=now+1700;saveShop();updateHud()}if(!hiding&&monsters.some(m=>m.x===nx&&m.y===ny)&&now>invulnerableUntil){lose();return}if(nx===portal.x&&ny===portal.y&&gems.every(g=>g.taken)){
+ // First clear: 10 coins; replay: 5 coins.
+ const replay=level<readMaxLevel(),reward=replay?5:10;
+ coins+=reward;saveShop();updateHud();
+ unlockLevel(Math.min(level+1,MAX_LEVEL));
+ const rewardText=replay?'🔁 Повторное прохождение! Награда: <strong>+5 🪙</strong>.':'Награда за прохождение: <strong>+10 🪙</strong>.';
+ const balanceText=' Теперь у тебя <strong>'+coins+' 🪙</strong>.';
+ if(level===MAX_LEVEL){overlay('🏆 Победа! Все 20 уровней пройдены!','Ты собрал все кристаллы! '+rewardText+balanceText+' Можно переигрывать уровни и снова получать монеты.','🏠 В главное меню')}
+ else{overlay('✨ Уровень пройден!','Ты собрал все три кристалла! '+rewardText+balanceText+' Следующий лабиринт будет сложнее.','Уровень '+(level+1)+' →')}
+ wins++;UI.wins.textContent=wins;UI.coins.textContent=coins;UI.shelters.textContent=hideouts.filter(h=>h.readyAt<=performance.now()).length+' / '+hideouts.length
+}}
+const savedLevelKey='chibiDragonLevel';const maxLevelKey='chibiDragonMaxLevel';function readSavedLevel(){try{const n=Number(localStorage.getItem(savedLevelKey));return Number.isSafeInteger(n)&&n>=1?Math.min(n,MAX_LEVEL):1}catch(e){return 1}}function saveLevel(){try{localStorage.setItem(savedLevelKey,String(level))}catch(e){}}function readMaxLevel(){try{const n=Number(localStorage.getItem(maxLevelKey));return Number.isSafeInteger(n)&&n>=1?Math.min(n,MAX_LEVEL):readSavedLevel()}catch(e){return readSavedLevel()}}function unlockLevel(n){try{const max=Math.min(MAX_LEVEL,Math.max(readMaxLevel(),n));localStorage.setItem(maxLevelKey,String(max))}catch(e){}}level=readSavedLevel();let menuVisible=true;const mainMenu=document.getElementById('mainMenu');UI.overlay.style.display='none';let paused=false,pausedAt=0;
+const pauseButton=document.getElementById('pauseButton'),pauseScreen=document.getElementById('pauseScreen');
+function setPaused(value){
+ if(value===paused||!playing||shopOpen)return;
+ if(value){paused=true;pausedAt=performance.now();resetJoystick();held=null;heldKey=null;touchPointer=null;document.querySelectorAll('.pad button').forEach(b=>b.classList.remove('pressed'))}
+ else{const elapsed=performance.now()-pausedAt;for(const h of hideouts)if(h.readyAt>pausedAt)h.readyAt+=elapsed;
+  if(boostUntil>pausedAt)boostUntil+=elapsed;
+  if(invulnerableUntil>pausedAt)invulnerableUntil+=elapsed;
+  if(bonusFlash>pausedAt)bonusFlash+=elapsed;
+  if(blackoutNoticeUntil>pausedAt)blackoutNoticeUntil+=elapsed;
+  nextMove=0;last=performance.now();paused=false}
+ pauseButton.textContent=paused?'▶ Продолжить':'⏸ Пауза';pauseButton.setAttribute('aria-pressed',String(paused));pauseScreen.classList.toggle('visible',paused);updateHud();if(typeof syncCustomMusic==='function')syncCustomMusic();
+}
+pauseButton.addEventListener('click',()=>setPaused(!paused));document.getElementById('pauseToMenu').addEventListener('click',()=>{if(!paused)return;setPaused(false);playing=false;resetJoystick();held=null;heldKey=null;touchPointer=null;UI.overlay.style.display='none';menuVisible=true;mainMenu.hidden=false;saveLevel();syncCustomMusic();});
+let held=null, heldKey=null, touchPointer=null;
+// Smooth analog movement is used only with the mobile joystick.
+let smoothPosition=null;
+function smoothOpen(x,y){
+ const r=.24;
+ return [[-r,-r],[-r,r],[r,-r],[r,r]].every(([dx,dy])=>openAt(Math.round(x+dx),Math.round(y+dy)));
+}
+function moveSmooth(dt){
+ if(!playing||shopOpen||paused||menuVisible||joystickPointer===null||!joystickDirection)return;
+ if(!smoothPosition)smoothPosition={x:player.x,y:player.y};
+ const vx=joystickDirection[0],vy=joystickDirection[1],len=Math.hypot(vx,vy);
+ if(len<.01)return;
+ const speed=(performance.now()<boostUntil?5.406:3.57)*Math.min(dt,55)/1000;
+ const dx=vx/len*speed,dy=vy/len*speed;
+ // Slide along walls rather than jumping between tiles.
+ if(smoothOpen(smoothPosition.x+dx,smoothPosition.y)){smoothPosition.x+=dx;lastDragonWalkAt=performance.now();}
+ if(smoothOpen(smoothPosition.x,smoothPosition.y+dy)){smoothPosition.y+=dy;lastDragonWalkAt=performance.now();}
+ const nx=Math.round(smoothPosition.x),ny=Math.round(smoothPosition.y);
+ if((nx!==player.x||ny!==player.y)&&openAt(nx,ny)){
+   // Reuse the existing pickups, enemy checks, and level completion logic.
+   nextMove=0;
+   const ox=player.x,oy=player.y;
+   if(Math.abs(nx-ox)+Math.abs(ny-oy)===1){
+     step(nx-ox,ny-oy);
+   }else{
+     // At a corner, process one adjacent corridor tile first.
+     if(nx!==ox&&openAt(nx,oy))step(nx-ox,0);
+     else if(ny!==oy&&openAt(ox,ny))step(0,ny-oy);
+   }
+ }
+}
+let joystickDirection=null, joystickPointer=null;const joystick=document.getElementById('joystick'),joystickThumb=document.getElementById('joystickThumb');
+function resetJoystick(){joystickDirection=null;joystickPointer=null;joystickThumb.style.transform='translate(-50%,-50%)';held=heldKey&&keyDirs[heldKey]?keyDirs[heldKey]:null}
+function updateJoystick(e){
+ const r=joystick.getBoundingClientRect(),dx=e.clientX-r.left-r.width/2,dy=e.clientY-r.top-r.height/2;
+ const dist=Math.hypot(dx,dy),radius=r.width*.34,scale=dist?Math.min(1,radius/dist):0;
+ joystickThumb.style.transform=`translate(calc(-50% + ${dx*scale}px),calc(-50% + ${dy*scale}px))`;
+ // Smaller dead zone: a gentle finger movement is enough to steer.
+ if(dist<8){joystickDirection=null;held=null;return}
+ // Slight directional hysteresis avoids jitter when the finger crosses a diagonal.
+ const old=joystickDirection;
+ const horizontal=old&&old[0]!==0?Math.abs(dx)>=Math.abs(dy)*.82:Math.abs(dx)>Math.abs(dy)*1.18;
+ joystickDirection=dist? [dx/dist,dy/dist]:null;
+ held=null;
+}
+joystick.addEventListener('pointerdown',e=>{if(!playing||shopOpen||paused||joystickPointer!==null)return;e.preventDefault();smoothPosition={x:player.x,y:player.y};joystickPointer=e.pointerId;joystick.setPointerCapture(e.pointerId);updateJoystick(e)});
+joystick.addEventListener('pointermove',e=>{if(e.pointerId!==joystickPointer)return;e.preventDefault();updateJoystick(e)});
+for(const ev of ['pointerup','pointercancel','lostpointercapture'])joystick.addEventListener(ev,e=>{if(e.pointerId===joystickPointer){joystickPointer=null;resetJoystick();smoothPosition=null;}});
+const keyDirs={arrowup:[0,-1],arrowdown:[0,1],arrowleft:[-1,0],arrowright:[1,0]};
+// Touch-capable devices receive the touch pad, including large-screen tablets.
+// A mouse/keyboard remains usable on hybrid devices.
+const touchDevice=()=>window.matchMedia('(pointer: coarse)').matches || (navigator.maxTouchPoints||0)>0;
+
+// Native fullscreen where permitted; immersive fallback for iPhone / restricted browsers.
+const fullscreenButton=document.getElementById('fullscreenButton');
+let fullscreenFallback=false;
+function syncFullscreenButton(){
+ const active=Boolean(document.fullscreenElement)||fullscreenFallback;
+ document.body.classList.toggle('immersive-mode',active);
+ fullscreenButton.textContent=active?'⛶ Свернуть':'⛶ На весь экран';
+ fullscreenButton.setAttribute('aria-pressed',String(active));
+ fullscreenButton.title=active?'Выйти из полноэкранного режима':'Развернуть игру на весь экран';
+}
+fullscreenButton.addEventListener('click',async()=>{
+ if(document.fullscreenElement){
+  try{await document.exitFullscreen()}catch(e){};
+  fullscreenFallback=false;syncFullscreenButton();return;
+ }
+ if(fullscreenFallback){fullscreenFallback=false;syncFullscreenButton();return}
+ // Fullscreen API requires a direct user gesture and is unavailable on some mobile browsers.
+ if(document.documentElement.requestFullscreen){
+  try{await document.documentElement.requestFullscreen();syncFullscreenButton();return}catch(e){}
+ }
+ fullscreenFallback=true;syncFullscreenButton();
+});
+document.addEventListener('fullscreenchange',()=>{fullscreenFallback=false;syncFullscreenButton()});
+
+function updateControls(){document.body.classList.toggle('touch-mode',touchDevice());document.body.classList.toggle('keyboard-mode',!touchDevice())}
+updateControls();let mobileMazeLayout=window.matchMedia('(max-width: 600px)').matches;window.addEventListener('resize',()=>{updateControls();const mobileNow=window.matchMedia('(max-width: 600px)').matches;if(mobileNow!==mobileMazeLayout){mobileMazeLayout=mobileNow;
+// Keep collected gems, monsters, and position when rotating the phone.
+C.width=mobileNow?600:840;C.height=mobileNow?840:600;
+if(cols>0&&rows>0){cell=Math.min((C.width-32)/cols,(C.height-32)/rows);offx=(C.width-cols*cell)/2;offy=(C.height-rows*cell)/2;}
+}});
+window.addEventListener('keydown',e=>{const k=e.key.toLowerCase(),d=keyDirs[k];if(d&&!menuVisible&&!shopOpen&&!paused){e.preventDefault();heldKey=k;held=d;step(...d)}if(k==='enter'&&menuVisible&&!shopOpen){document.getElementById('menuPlay').click()}else if(k==='enter'&&!playing&&!shopOpen){UI.button.click()}});
+window.addEventListener('keyup',e=>{let k=e.key.toLowerCase();if(k===heldKey){heldKey=null;held=null}});
+window.addEventListener('blur',()=>{held=null;heldKey=null;touchPointer=null;resetJoystick();document.querySelectorAll('.pad button').forEach(b=>b.classList.remove('pressed'))});document.addEventListener('visibilitychange',()=>{if(document.hidden){held=null;heldKey=null;touchPointer=null;resetJoystick();}});
+document.querySelectorAll('[data-dir]').forEach(b=>{const v={up:[0,-1],down:[0,1],left:[-1,0],right:[1,0]}[b.dataset.dir];
+ b.addEventListener('pointerdown',e=>{e.preventDefault();touchPointer=e.pointerId;held=v;step(...v);b.classList.add('pressed');b.setPointerCapture(e.pointerId)});
+ const release=e=>{if(touchPointer===e.pointerId){held=null;touchPointer=null}b.classList.remove('pressed')};
+ b.addEventListener('pointerup',release);b.addEventListener('pointercancel',release);b.addEventListener('lostpointercapture',release);
+});
+UI.button.addEventListener('click',()=>{if(level===1&&wins===0&&gems.some(g=>g.taken))generate();if(UI.title.textContent.includes('поймали'))generate();if(UI.title.textContent.includes('Победа! Все 20 уровней')){playing=false;held=null;saveLevel();menuVisible=true;mainMenu.hidden=false;UI.overlay.style.display='none';syncCustomMusic();return}if(UI.title.textContent.includes('Уровень пройден!')){level=Math.min(MAX_LEVEL,level+1);unlockLevel(level);saveLevel();syncThemeToLevel(true);generate()}nextMove=0;held=null;playing=true;UI.overlay.style.display='none';last=performance.now()});document.getElementById('restart').addEventListener('click',start);
+function moveMonsters(dt,now){
+ if(!playing||shopOpen)return;
+ const shelterDistances=hiding?distanceMap(hiding.x,hiding.y):null;
+ const blackout=level%5===0;
+ const chaseDistances=(hiding||blackout)?null:distanceMap(player.x,player.y);
+ for(let m of monsters){
+  m.clock+=dt;if(m.clock<m.delay)continue;m.clock-=m.delay;
+  let options=dirs.map(([dx,dy])=>({x:m.x+dx,y:m.y+dy})).filter(p=>openAt(p.x,p.y)&&!(hiding&&p.x===hiding.x&&p.y===hiding.y));
+  if(!options.length)continue;
+  let candidate;
+  if(hiding){
+   // The shelter breaks the chase: monsters move away instead of waiting outside.
+   let here=shelterDistances[m.y][m.x];
+   let away=options.filter(p=>shelterDistances[p.y][p.x]>here);
+   if(away.length){candidate=away[rand(away.length)]}
+   else{
+    let best=Math.max(...options.map(p=>shelterDistances[p.y][p.x]));
+    let alternatives=options.filter(p=>shelterDistances[p.y][p.x]===best);
+    candidate=alternatives[rand(alternatives.length)];
+   }
+   // Once far from the portal, wander along the corridors rather than camping.
+   if(here>=7){
+    let noBacktrack=options.filter(p=>p.x!==m.prevX||p.y!==m.prevY);
+    let wander=noBacktrack.length?noBacktrack:options;
+    candidate=wander[rand(wander.length)];
+   }
+  }else if(blackout){
+   // Darkness hides the dragon from enemies: patrol, without pathfinding to the player.
+   const forward=options.filter(p=>p.x!==m.prevX||p.y!==m.prevY);
+   const candidates=forward.length?forward:options;
+   candidate=candidates[rand(candidates.length)];
+  }else{
+   options.sort((a,b)=>chaseDistances[a.y][a.x]-chaseDistances[b.y][b.x]);
+   let follow=Math.min(.72+(level-1)*.03,.94);
+   candidate=Math.random()<follow?options[0]:options[rand(options.length)];
+   if(options.length>1&&Math.random()>.84){
+    let rest=options.filter(p=>p.x!==m.prevX||p.y!==m.prevY);
+    if(rest.length)candidate=rest[rand(rest.length)];
+   }
+  }
+  m.prevX=m.x;m.prevY=m.y;m.x=candidate.x;m.y=candidate.y;
+  if(Math.abs(m.x-player.x)+Math.abs(m.y-player.y)<=3)fireMonsterSound(now);
+  if(!hiding&&m.x===player.x&&m.y===player.y&&now>invulnerableUntil){lose();return}
+ }
+}
+const center=(x,y)=>({x:offx+(x+.5)*cell,y:offy+(y+.5)*cell});function circle(x,y,r,color){ctx.fillStyle=color;ctx.beginPath();ctx.arc(x,y,r,0,2*Math.PI);ctx.fill()}function crystal(x,y,t){let p=center(x,y),r=cell*.27*(1+.06*Math.sin(t/250));ctx.save();ctx.translate(p.x,p.y);ctx.shadowColor='#6fffaa';ctx.shadowBlur=18;ctx.fillStyle='#37f18c';ctx.strokeStyle='#c3ffdf';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(0,-r*1.45);ctx.lineTo(r, -r*.3);ctx.lineTo(r*.67,r*.8);ctx.lineTo(0,r*1.35);ctx.lineTo(-r*.67,r*.8);ctx.lineTo(-r,-r*.3);ctx.closePath();ctx.fill();ctx.stroke();ctx.fillStyle='#c5ffe3';ctx.beginPath();ctx.moveTo(0,-r*1.2);ctx.lineTo(-r*.56,-r*.15);ctx.lineTo(0,r*.6);ctx.fill();ctx.restore()}
+function strokeCircle(x,y,r,color,w=1.4){ctx.strokeStyle=color;ctx.lineWidth=w;ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.stroke()}
+let lastDragonWalkAt=-10000;
+function dragon(x,y,t,skinId=selectedSkin){const walking=playing&&!paused&&t-lastDragonWalkAt<190;const stride=walking?Math.sin(t/83):0;let p=center(x,y),s=cell/34,bob=walking?Math.abs(Math.sin(t/83))*2.7:Math.sin(t/300)*.55,blink=Math.sin(t/500)>0.94?0.18:1;const skin=(skinInfo.find(v=>v.id===skinId)||skinInfo[0]).palette;ctx.save();ctx.translate(p.x,p.y+bob);ctx.scale(s,s);if(walking)ctx.rotate(stride*.035);ctx.lineJoin='round';ctx.lineCap='round';ctx.shadowColor=skin.glow||'#c88cff';ctx.shadowBlur=18;ctx.strokeStyle=skin.outline;ctx.lineWidth=2.2;// Two alternating chibi feet, behind the belly, visibly stepping on each stride.
+ctx.strokeStyle=skin.outline;ctx.lineWidth=2.1;
+for(const side of [-1,1]){const lift=walking?Math.max(0,stride*side)*4.6:0;const shift=walking?stride*side*3.7:0;ctx.fillStyle=skin.body;ctx.beginPath();ctx.ellipse(side*8+shift,19-lift,6.1,5.4,side*.13,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.fillStyle=skin.belly;ctx.beginPath();ctx.ellipse(side*8+shift,21.4-lift,3.1,1.4,0,0,Math.PI*2);ctx.fill();}
+ctx.fillStyle=skin.body;ctx.beginPath();ctx.moveTo(-18,9);ctx.quadraticCurveTo(-26,5,-20,-2);ctx.quadraticCurveTo(-11,-11,-6,-2);ctx.quadraticCurveTo(-4,5,-8,11);ctx.closePath();ctx.fill();ctx.stroke();ctx.fillStyle=skin.wings;ctx.beginPath();ctx.moveTo(-10,-3);ctx.lineTo(-18,-20);ctx.lineTo(-3,-10);ctx.closePath();ctx.fill();ctx.stroke();ctx.beginPath();ctx.moveTo(10,-2);ctx.lineTo(18,-19);ctx.lineTo(7,-7);ctx.closePath();ctx.fill();ctx.stroke();ctx.fillStyle=skin.body;ctx.beginPath();ctx.roundRect(-12,4,24,18,10);ctx.fill();ctx.stroke();ctx.fillStyle=skin.belly;ctx.beginPath();ctx.roundRect(-6,8,12,10,6);ctx.fill();ctx.stroke();ctx.fillStyle=skin.head;ctx.beginPath();ctx.arc(0,-5,15,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.fillStyle=skin.horns;ctx.beginPath();ctx.moveTo(-10,-13);ctx.lineTo(-8,-28);ctx.lineTo(-1,-18);ctx.lineTo(4,-26);ctx.lineTo(10,-11);ctx.closePath();ctx.fill();ctx.stroke();if(skin.crown){ctx.fillStyle=skin.crown;ctx.strokeStyle=skin.outline;ctx.lineWidth=1.8;ctx.beginPath();ctx.moveTo(-11,-20);ctx.lineTo(-8,-31);ctx.lineTo(-2,-21);ctx.lineTo(1,-33);ctx.lineTo(6,-21);ctx.lineTo(11,-30);ctx.lineTo(13,-18);ctx.closePath();ctx.fill();ctx.stroke();circle(-8,-31,1.5,skin.crown);circle(1,-33,1.5,skin.crown);circle(11,-30,1.5,skin.crown)}ctx.fillStyle='#ffffff';ctx.beginPath();ctx.ellipse(-6,-6,5.2,6.6*blink,0,0,Math.PI*2);ctx.ellipse(6,-6,5.2,6.6*blink,0,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.fillStyle='#30204f';ctx.beginPath();ctx.ellipse(-5.4,-5.6,2.5,3.2*blink,0,0,Math.PI*2);ctx.ellipse(6.7,-5.6,2.5,3.2*blink,0,0,Math.PI*2);ctx.fill();circle(-4.2,-7.4,.9,'#fff');circle(7.7,-7.4,.9,'#fff');ctx.fillStyle=skin.blush||'#ffb1df';ctx.beginPath();ctx.ellipse(-11,-.5,2.7,1.8,0,0,Math.PI*2);ctx.ellipse(11,-.5,2.7,1.8,0,0,Math.PI*2);ctx.fill();ctx.strokeStyle=skin.mouth||skin.outline;ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(-2.4,1.2);ctx.quadraticCurveTo(0,3.5,2.4,1.2);ctx.stroke();ctx.fillStyle=skin.tongue||'#ff79c7';ctx.beginPath();ctx.moveTo(-1,2.6);ctx.lineTo(0,4.2);ctx.lineTo(1,2.6);ctx.closePath();ctx.fill();ctx.fillStyle=skin.tail||skin.body;ctx.beginPath();ctx.moveTo(10,6);ctx.quadraticCurveTo(22,9,17,18);ctx.quadraticCurveTo(10,17,8,11);ctx.closePath();ctx.fill();ctx.stroke();ctx.fillStyle=skin.horns;ctx.beginPath();ctx.moveTo(16,15);ctx.lineTo(20,20);ctx.lineTo(14,19);ctx.closePath();ctx.fill();ctx.stroke();if(skinId==='pink'){ctx.fillStyle='#fff0ad';ctx.strokeStyle='#c58938';ctx.lineWidth=1.3;ctx.beginPath();ctx.moveTo(15,-6);ctx.lineTo(17,-1);ctx.lineTo(22,-1);ctx.lineTo(18,2);ctx.lineTo(20,7);ctx.lineTo(15,4);ctx.lineTo(10,7);ctx.lineTo(12,2);ctx.lineTo(8,-1);ctx.lineTo(13,-1);ctx.closePath();ctx.fill();ctx.stroke()}if(skinId==='dandy'){ctx.save();ctx.shadowBlur=8;for(let j=0;j<6;j++){let a=j*Math.PI/3;circle(Math.cos(a)*5,-28+Math.sin(a)*5,3.4,['#ffb6d9','#fbe6a5','#cbadff'][j%3])}circle(0,-28,3.9,'#ffdc62');ctx.restore()}ctx.restore()}
+function skinEffect(x,y,t,skinId){
+ const spec=skinInfo.find(s=>s.id===skinId),type=spec?.effect;
+ if(!type)return;
+ const p=center(x,y);ctx.save();ctx.translate(p.x,p.y);ctx.shadowBlur=9;
+ const colors={sun:['#ffe17f','#ff8c61'],moon:['#b2b6ff','#d1c6ff'],sparkle:['#fff5b5','#ffd350'],star:['#fca5ff','#bde9ff'],leaf:['#aaffc4','#56c5a9'],ember:['#ffd05c','#ff693b'],flower:['#ffd5ee','#fff0a5']}[type]||['#ffffff','#ffd9a2'];
+ for(let i=0;i<6;i++){
+ const phase=t/870+i*1.73,ang=i*Math.PI/3+Math.sin(phase)*.25;
+ const rr=cell*(.36+.10*Math.sin(phase*1.3));
+ const xx=Math.cos(ang)*rr,yy=Math.sin(ang)*rr-cell*.08;
+ const size=Math.max(1.3,cell*.042)*(0.7+.4*Math.sin(phase*1.8)**2);
+ ctx.fillStyle=colors[i%2];ctx.shadowColor=colors[i%2];
+ if(type==='star'||type==='sparkle'||type==='moon'){
+ ctx.beginPath();for(let k=0;k<8;k++){let a=k*Math.PI/4-Math.PI/2,r=k%2?size*.42:size;(k?ctx.lineTo(xx+Math.cos(a)*r,yy+Math.sin(a)*r):ctx.moveTo(xx+Math.cos(a)*r,yy+Math.sin(a)*r))}ctx.closePath();ctx.fill();
+ }else if(type==='leaf'){ctx.beginPath();ctx.ellipse(xx,yy,size*.65,size*1.35,ang,0,Math.PI*2);ctx.fill();}
+ else{ctx.beginPath();ctx.arc(xx,yy,size,0,Math.PI*2);ctx.fill()}
+ }
+ ctx.restore();
+}
+function monster(x,y,t,i,skinId=selectedEnemySkin){let p=center(x,y),s=cell/34,bob=Math.sin(t/140+i)*2.1,pal=(enemySkinInfo.find(v=>v.id===skinId)||enemySkinInfo[0]).palette;ctx.save();ctx.translate(p.x,p.y+bob);ctx.scale(s,s);ctx.lineJoin='round';ctx.lineCap='round';ctx.shadowColor=pal.shadow;ctx.shadowBlur=19;let flame=ctx.createRadialGradient(0,-4,2,0,0,20);flame.addColorStop(0,pal.core);flame.addColorStop(.28,pal.mid);flame.addColorStop(.62,pal.outer);flame.addColorStop(1,pal.edge);ctx.fillStyle=flame;ctx.strokeStyle=pal.stroke;ctx.lineWidth=2.1;ctx.beginPath();ctx.moveTo(-15,14);ctx.quadraticCurveTo(-24,0,-14,-11);ctx.lineTo(-10,-24);ctx.lineTo(-1,-14);ctx.lineTo(5,-30);ctx.lineTo(12,-14);ctx.lineTo(20,-21);ctx.quadraticCurveTo(27,0,15,14);ctx.quadraticCurveTo(8,20,0,18);ctx.quadraticCurveTo(-8,19,-15,14);ctx.closePath();ctx.fill();ctx.stroke();ctx.fillStyle=pal.face;ctx.beginPath();ctx.arc(0,2,12.5,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.fillStyle=pal.eye;ctx.beginPath();ctx.ellipse(-5,-2,4.8,5.9,0,0,Math.PI*2);ctx.ellipse(6,-2,4.8,5.9,0,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.fillStyle=pal.pupil;ctx.beginPath();ctx.ellipse(-4,-1.5,2.3,2.8,0,0,Math.PI*2);ctx.ellipse(7,-1.5,2.3,2.8,0,0,Math.PI*2);ctx.fill();circle(-3.2,-3.4,.8,'#fff');circle(7.8,-3.4,.8,'#fff');ctx.strokeStyle=pal.mouth;ctx.lineWidth=1.8;ctx.beginPath();ctx.moveTo(-8,8);ctx.quadraticCurveTo(0,13,8,8);ctx.stroke();ctx.fillStyle=pal.tongue;ctx.beginPath();ctx.moveTo(-2,8.5);ctx.lineTo(0,12);ctx.lineTo(2,8.5);ctx.closePath();ctx.fill();ctx.fillStyle=pal.spark;ctx.beginPath();ctx.moveTo(-4,-18);ctx.lineTo(-1,-24);ctx.lineTo(2,-16);ctx.closePath();ctx.moveTo(8,-14);ctx.lineTo(12,-20);ctx.lineTo(12,-12);ctx.closePath();ctx.fill();ctx.stroke();ctx.restore()}
+function spiderMonster(x,y,t,i){let p=center(x,y),s=cell/34,bob=Math.sin(t/160+i)*1.5;ctx.save();ctx.translate(p.x,p.y+bob);ctx.scale(s,s);ctx.lineJoin='round';ctx.lineCap='round';ctx.shadowColor='#ff962c';ctx.shadowBlur=13;ctx.strokeStyle='#1f1413';ctx.lineWidth=2.1;for(let side of [-1,1]){for(let k=0;k<4;k++){let y=-6+k*6, bend=12+k*2, tip=22+k;ctx.beginPath();ctx.moveTo(side*7,y);ctx.quadraticCurveTo(side*bend,y-5+2*k,side*tip,y-11+7*k);ctx.stroke();}}ctx.fillStyle='#231619';ctx.beginPath();ctx.ellipse(0,5,12,10,0,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.fillStyle='#352022';ctx.beginPath();ctx.arc(0,-5,9,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.fillStyle='#ff8d24';ctx.beginPath();ctx.arc(-4,-6,2.8,0,Math.PI*2);ctx.arc(4,-6,2.8,0,Math.PI*2);ctx.fill();circle(-4.2,-6.2,1.2,'#1a0f0d');circle(4.2,-6.2,1.2,'#1a0f0d');circle(-5.1,-7.1,.5,'#fff0cb');circle(3.3,-7.1,.5,'#fff0cb');ctx.strokeStyle='#a64b16';ctx.lineWidth=1.6;ctx.beginPath();ctx.moveTo(-4,0);ctx.quadraticCurveTo(0,3,4,0);ctx.stroke();ctx.fillStyle='#ffb14a';ctx.beginPath();ctx.arc(0,6,2.2,0,Math.PI*2);ctx.fill();for(let dx of [-5,0,5]){ctx.fillStyle='#ff7e2a';ctx.beginPath();ctx.arc(dx,6+Math.sin(t/140+dx)*.35,1.35,0,Math.PI*2);ctx.fill();}ctx.restore()}
+function batMonster(x,y,t,i){let p=center(x,y),s=cell/34,bob=Math.sin(t/150+i*1.7)*2.4,flap=Math.sin(t/52+i*1.7)*1.15;ctx.save();ctx.translate(p.x,p.y+bob);ctx.scale(s,s);ctx.lineJoin='round';ctx.lineCap='round';ctx.shadowColor='#9eb7ff';ctx.shadowBlur=11;ctx.strokeStyle='#22284f';ctx.lineWidth=2;ctx.fillStyle='#4956a8';ctx.beginPath();ctx.moveTo(-5,-1);ctx.quadraticCurveTo(-14,-19,-28,-7);ctx.quadraticCurveTo(-18,-2,-12,4+flap*9);ctx.quadraticCurveTo(-18,11,-29,8);ctx.quadraticCurveTo(-17,18,-5,8);ctx.closePath();ctx.fill();ctx.stroke();ctx.beginPath();ctx.moveTo(5,-1);ctx.quadraticCurveTo(14,-19,28,-7);ctx.quadraticCurveTo(18,-2,12,4+flap*9);ctx.quadraticCurveTo(18,11+flap*4,29,8+flap*8);ctx.quadraticCurveTo(17,18,5,8);ctx.closePath();ctx.fill();ctx.stroke();ctx.fillStyle='#5864bd';ctx.beginPath();ctx.arc(0,0,11,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.fillStyle='#6c79d8';ctx.beginPath();ctx.arc(0,-7,9,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.shadowColor='#a8f4ff';ctx.shadowBlur=16+5*Math.sin(t/170+i)**2;ctx.fillStyle='#bcefff';ctx.beginPath();ctx.ellipse(-4,-8,3.9,4.8,0,0,Math.PI*2);ctx.ellipse(4,-8,3.9,4.8,0,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.shadowBlur=0;ctx.fillStyle='#1c2244';ctx.beginPath();ctx.ellipse(-3.6,-8,1.8,2.2,0,0,Math.PI*2);ctx.ellipse(4.4,-8,1.8,2.2,0,0,Math.PI*2);ctx.fill();circle(-2.8,-8.9,.6,'#fff');circle(5.2,-8.9,.6,'#fff');ctx.save();ctx.globalAlpha=.2+.2*(1+Math.sin(t/155+i))/2;ctx.shadowBlur=12;ctx.shadowColor='#9df5ff';circle(-4,-8,4.8,'#7deaff');circle(4,-8,4.8,'#7deaff');ctx.restore();ctx.fillStyle='#8ea2ff';ctx.beginPath();ctx.moveTo(-6,-14);ctx.lineTo(-3,-22);ctx.lineTo(-1,-13);ctx.closePath();ctx.moveTo(6,-14);ctx.lineTo(3,-22);ctx.lineTo(1,-13);ctx.closePath();ctx.fill();ctx.stroke();ctx.strokeStyle='#2f3569';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(-3,-2);ctx.quadraticCurveTo(0,1,3,-2);ctx.stroke();ctx.fillStyle='#ff9fca';ctx.beginPath();ctx.moveTo(-1,0);ctx.lineTo(0,2.8);ctx.lineTo(1,0);ctx.closePath();ctx.fill();ctx.fillStyle='#eef1ff';ctx.beginPath();ctx.moveTo(-3,1);ctx.lineTo(-1,6);ctx.lineTo(0,1);ctx.closePath();ctx.moveTo(3,1);ctx.lineTo(1,6);ctx.lineTo(0,1);ctx.closePath();ctx.fill();ctx.stroke();ctx.restore()}
+function wolfMonster(x,y,t,i){let p=center(x,y),s=cell/34,bob=Math.sin(t/170+i)*1.7;ctx.save();ctx.translate(p.x,p.y+bob);ctx.scale(s,s);ctx.lineJoin='round';ctx.lineCap='round';ctx.shadowColor='#b3d39f';ctx.shadowBlur=8;ctx.strokeStyle='#4b5344';ctx.lineWidth=2;ctx.fillStyle='#9aa58f';ctx.beginPath();ctx.roundRect(-12,2,24,15,8);ctx.fill();ctx.stroke();ctx.fillStyle='#adb8a0';ctx.beginPath();ctx.arc(0,-6,13,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.fillStyle='#8f9984';ctx.beginPath();ctx.moveTo(-9,-12);ctx.lineTo(-13,-23);ctx.lineTo(-4,-15);ctx.closePath();ctx.moveTo(9,-12);ctx.lineTo(13,-23);ctx.lineTo(4,-15);ctx.closePath();ctx.fill();ctx.stroke();ctx.fillStyle='#e7f6d7';ctx.beginPath();ctx.ellipse(-5,-7,4.1,4.9,0,0,Math.PI*2);ctx.ellipse(5,-7,4.1,4.9,0,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.fillStyle='#26321f';ctx.beginPath();ctx.ellipse(-4.5,-7,1.9,2.3,0,0,Math.PI*2);ctx.ellipse(5.4,-7,1.9,2.3,0,0,Math.PI*2);ctx.fill();circle(-3.8,-8,.6,'#fff');circle(6.1,-8,.6,'#fff');ctx.fillStyle='#eaf3dd';ctx.beginPath();ctx.ellipse(0,0,6.5,5.2,0,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.fillStyle='#2f271f';ctx.beginPath();ctx.arc(0,-1,2.6,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#4a4337';ctx.lineWidth=1.4;ctx.beginPath();ctx.moveTo(-3.4,2.2);ctx.quadraticCurveTo(0,5.2,3.4,2.2);ctx.stroke();ctx.fillStyle='#ffb7cc';ctx.beginPath();ctx.moveTo(-1,3.2);ctx.lineTo(0,5);ctx.lineTo(1,3.2);ctx.closePath();ctx.fill();ctx.fillStyle='#7f8974';ctx.beginPath();ctx.moveTo(9,6);ctx.quadraticCurveTo(20,8,18,15);ctx.quadraticCurveTo(11,15,8,10);ctx.closePath();ctx.fill();ctx.stroke();ctx.restore()}
+function twistedMonster(x,y,t,i){let p=center(x,y),scale=cell/34,bob=Math.sin(t/175+i)*1.9;ctx.save();ctx.translate(p.x,p.y+bob);ctx.scale(scale,scale);ctx.lineJoin='round';ctx.strokeStyle='#493069';ctx.lineWidth=1.7;ctx.shadowColor='#b882ff';ctx.shadowBlur=10;for(let j=0;j<7;j++){let a=j*Math.PI*2/7-t/2100;ctx.fillStyle=['#c78dea','#ffa3c7','#f7d47f','#84cdd9'][j%4];ctx.beginPath();ctx.ellipse(Math.cos(a)*12,Math.sin(a)*12,6.6,9.2,a+Math.PI/2,0,Math.PI*2);ctx.fill();ctx.stroke()}ctx.fillStyle='#ffe4a7';ctx.beginPath();ctx.arc(0,0,11,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.fillStyle='#30223d';ctx.beginPath();ctx.ellipse(-4,-2,2.4,4.5,-.1,0,Math.PI*2);ctx.ellipse(4,-2,2.4,4.5,.1,0,Math.PI*2);ctx.fill();circle(-3.3,-3.2,.8,'#fff');circle(4.7,-3.2,.8,'#fff');ctx.beginPath();ctx.moveTo(-4,6);ctx.quadraticCurveTo(0,2,4,6);ctx.stroke();ctx.fillStyle='#de78b1';ctx.beginPath();ctx.arc(-8,3,2.2,0,Math.PI*2);ctx.arc(8,3,2.2,0,Math.PI*2);ctx.fill();ctx.restore()}
+function dandyDecor(X,Y,size,x,y,t){if((x*13+y*19)%23!==0)return;ctx.save();ctx.globalAlpha=.63;ctx.translate(X+size*.5,Y+size*.5);ctx.rotate(Math.sin(t/1800+x)*.08);for(let j=0;j<5;j++){let a=j*2*Math.PI/5;circle(Math.cos(a)*size*.12,Math.sin(a)*size*.12,size*.09,'#f8b5dc')}circle(0,0,size*.09,'#ffdf8d');ctx.restore()}
+function bushWall(X,Y,size,tone){ctx.save();ctx.shadowColor=tone==='a'?'#2f613c':'#2b5b36';ctx.shadowBlur=4;ctx.fillStyle=tone==='a'?'#39754c':'#46845a';ctx.beginPath();ctx.arc(X+size*.28,Y+size*.6,size*.24,0,Math.PI*2);ctx.arc(X+size*.5,Y+size*.43,size*.26,0,Math.PI*2);ctx.arc(X+size*.72,Y+size*.6,size*.24,0,Math.PI*2);ctx.arc(X+size*.42,Y+size*.72,size*.22,0,Math.PI*2);ctx.arc(X+size*.6,Y+size*.75,size*.2,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;ctx.fillStyle=tone==='a'?'#83bb81':'#95c990';ctx.beginPath();ctx.arc(X+size*.33,Y+size*.52,size*.07,0,Math.PI*2);ctx.arc(X+size*.57,Y+size*.35,size*.08,0,Math.PI*2);ctx.arc(X+size*.72,Y+size*.56,size*.06,0,Math.PI*2);ctx.fill();ctx.fillStyle='#244e39';ctx.fillRect(X+size*.12,Y+size*.74,size*.76,size*.12);ctx.restore()}function crabMonster(x,y,t,i){let p=center(x,y),s=cell/34,bob=Math.sin(t/170+i)*1.8,pinch=(Math.sin(t/130+i)+1)/2;ctx.save();ctx.translate(p.x,p.y+bob);ctx.scale(s,s);ctx.lineJoin='round';ctx.lineCap='round';ctx.shadowColor='#98ebff';ctx.shadowBlur=11;ctx.strokeStyle='#1d6179';ctx.lineWidth=2;for(let side of[-1,1])for(let k=0;k<3;k++){let oy=-1+k*5;ctx.beginPath();ctx.moveTo(side*7,oy);ctx.quadraticCurveTo(side*(12+k*2),oy+1,side*(18+k*2),oy+6);ctx.stroke()}ctx.fillStyle='#ff7f5d';ctx.beginPath();ctx.ellipse(0,2,13,10,0,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.fillStyle='#ff9578';ctx.beginPath();ctx.arc(0,-5,9,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.fillStyle='#fff6df';ctx.beginPath();ctx.ellipse(-4,-7,3.8,4.5,0,0,Math.PI*2);ctx.ellipse(4,-7,3.8,4.5,0,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.fillStyle='#1b3040';ctx.beginPath();ctx.ellipse(-3.4,-7,1.7,2,0,0,Math.PI*2);ctx.ellipse(4.4,-7,1.7,2,0,0,Math.PI*2);ctx.fill();circle(-2.8,-8,.5,'#fff');circle(5,-8,.5,'#fff');ctx.strokeStyle='#a04935';ctx.lineWidth=1.4;ctx.beginPath();ctx.moveTo(-3,-1);ctx.quadraticCurveTo(0,2,3,-1);ctx.stroke();ctx.fillStyle='#ffb3c7';ctx.beginPath();ctx.moveTo(-1,0);ctx.lineTo(0,2);ctx.lineTo(1,0);ctx.closePath();ctx.fill();ctx.fillStyle='#ff8c68';for(let side of[-1,1]){ctx.beginPath();ctx.moveTo(side*10,-1);ctx.quadraticCurveTo(side*18,-12,side*(24+pinch*3),-7-pinch*4);ctx.quadraticCurveTo(side*20,-2,side*13,2);ctx.closePath();ctx.fill();ctx.stroke();ctx.fillStyle='#ffd7b6';ctx.beginPath();ctx.moveTo(side*(23+pinch*3),-7-pinch*4);ctx.lineTo(side*(28+pinch*3),-10-pinch*4);ctx.lineTo(side*(26+pinch*3),-3-pinch*3);ctx.closePath();ctx.fill();ctx.stroke();ctx.fillStyle='#ff8c68'}ctx.restore()}
+function drawSecretStar(t){if(!secretStar||secretStar.taken)return;let p=center(secretStar.x,secretStar.y),r=cell*.24*(1+Math.sin(t/200)*.08);ctx.save();ctx.translate(p.x,p.y);ctx.rotate(Math.sin(t/900)*.22);ctx.shadowColor='#ffe86d';ctx.shadowBlur=22;ctx.fillStyle='#ffdb51';ctx.strokeStyle='#fff7c0';ctx.lineWidth=Math.max(1,cell*.055);ctx.beginPath();for(let j=0;j<10;j++){let a=-Math.PI/2+j*Math.PI/5,R=j%2?r*.45:r;let x=Math.cos(a)*R,y=Math.sin(a)*R;if(j===0)ctx.moveTo(x,y);else ctx.lineTo(x,y)}ctx.closePath();ctx.fill();ctx.stroke();ctx.restore()}
+function drawSpeedPotion(x,y,t){const p=center(x,y),sc=cell/34;ctx.save();ctx.translate(p.x,p.y+Math.sin(t/230)*2);ctx.scale(sc,sc);ctx.shadowColor='#4bd7ff';ctx.shadowBlur=16;ctx.fillStyle='#c9efff';ctx.strokeStyle='#316dba';ctx.lineWidth=2;ctx.beginPath();ctx.roundRect(-6,-16,12,6,2);ctx.fill();ctx.stroke();ctx.fillStyle='#9de3ff';ctx.beginPath();ctx.moveTo(-9,-10);ctx.lineTo(9,-10);ctx.lineTo(12,10);ctx.quadraticCurveTo(0,21,-12,10);ctx.closePath();ctx.fill();ctx.stroke();ctx.fillStyle='#258dff';ctx.beginPath();ctx.moveTo(-10,2);ctx.lineTo(10,2);ctx.lineTo(10,10);ctx.quadraticCurveTo(0,18,-10,10);ctx.closePath();ctx.fill();ctx.fillStyle='white';ctx.font='bold 13px system-ui';ctx.textAlign='center';ctx.fillText('⚡',0,10);ctx.restore()}
+function yellowPortal(h,t){let p=center(h.x,h.y),remaining=Math.max(0,h.readyAt-t),ready=remaining===0;ctx.save();ctx.translate(p.x,p.y);ctx.shadowColor=ready?'#ffe05e':'#725b55';ctx.shadowBlur=ready?19:3;ctx.beginPath();ctx.ellipse(0,0,cell*.37,cell*.44,0,0,Math.PI*2);ctx.fillStyle=ready?'#ffc62f':'#655344';ctx.fill();ctx.strokeStyle=ready?'#fff3a4':'#9b8c74';ctx.lineWidth=3;ctx.stroke();ctx.beginPath();ctx.ellipse(0,0,cell*.26,cell*.32,0,0,Math.PI*2);ctx.fillStyle=ready?'#fff4a9':'#383047';ctx.fill();if(ready){ctx.fillStyle='#ffb018';ctx.beginPath();ctx.arc(Math.sin(t/280)*cell*.07,Math.cos(t/250)*cell*.07,cell*.1,0,Math.PI*2);ctx.fill()}else{ctx.shadowBlur=0;ctx.fillStyle='#fff';ctx.font='bold '+Math.max(11,cell*.35)+'px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(Math.ceil(remaining/1000),0,1)}ctx.restore()}
+let previewSkin=selectedSkin,previewEnemySkin=selectedEnemySkin;const shopPanel=document.getElementById('shopPanel'),skinGrid=document.getElementById('skinGrid');function setShopMode(mode){shopMode=mode;document.getElementById('shopTabDragons').classList.toggle('active',mode==='dragons');document.getElementById('shopTabEnemies').classList.toggle('active',mode==='enemies');document.getElementById('shopTitle').textContent=mode==='dragons'?'🛍️ Магазин драконов':'🛍️ Магазин врагов';refreshShop()}function drawShopPreview(){const canvas=document.getElementById('skinPreview'),pc=canvas.getContext('2d');pc.clearRect(0,0,canvas.width,canvas.height);const oldCtx=ctx,oldCell=cell,oldOffX=offx,oldOffY=offy;try{ctx=pc;cell=64;offx=(canvas.width-cell)/2;offy=(canvas.height-cell)/2+2;ctx.save();ctx.setTransform(1,0,0,1,0,0);if(shopMode==='dragons'){const skin=skinInfo.find(s=>s.id===previewSkin)||skinInfo[0];skinEffect(0,0,performance.now(),skin.id);dragon(0,0,performance.now(),skin.id);document.getElementById('previewName').textContent=skin.emoji+' '+skin.name;document.getElementById('previewStatus').textContent=selectedSkin===skin.id?'Этот дракон сейчас выбран.':ownedSkins.includes(skin.id)?'Скин уже куплен. Можешь надеть его!':'Посмотри, как выглядит дракон. Цена: 100 🪙. Предпросмотр бесплатный.'}else{const skin=enemySkinInfo.find(s=>s.id===previewEnemySkin)||enemySkinInfo[0];monster(0,0,performance.now(),0,skin.id);document.getElementById('previewName').textContent=skin.emoji+' '+skin.name;document.getElementById('previewStatus').textContent=selectedEnemySkin===skin.id?'Этот вид врагов сейчас выбран.':ownedEnemySkins.includes(skin.id)?'Скин врагов уже куплен. Можешь надеть его!':'Посмотри, как выглядит монстр. Цена: '+(skin.id==='toxic'?150:100)+' 🪙. Предпросмотр бесплатный.'}ctx.restore()}finally{ctx=oldCtx;cell=oldCell;offx=oldOffX;offy=oldOffY}}function refreshShop(){UI.coins.textContent=coins;document.getElementById('shopCoins').textContent=coins+' 🪙';skinGrid.innerHTML='';if(shopMode==='dragons'){for(const skin of skinInfo){let owned=ownedSkins.includes(skin.id),chosen=selectedSkin===skin.id;const el=document.createElement('div');el.className='skin'+(chosen?' selected':'')+(previewSkin===skin.id?' previewing':'');el.tabIndex=0;el.setAttribute('role','button');el.setAttribute('aria-label','Посмотреть скин '+skin.name);const icon=document.createElement('span');icon.className='emoji';icon.textContent=skin.emoji+' 🐉';el.appendChild(icon);const name=document.createElement('b');name.textContent=skin.name;el.appendChild(name);const price=document.createElement('span');price.textContent=skin.id==='violet'?'Бесплатный':owned?'Куплен':'100 🪙';el.appendChild(price);const previewButton=document.createElement('button');previewButton.textContent='👀 Посмотреть';previewButton.addEventListener('click',e=>{e.stopPropagation();previewSkin=skin.id;refreshShop()});el.appendChild(previewButton);const btn=document.createElement('button');btn.textContent=chosen?'✓ Надет':owned?'Надеть':coins<100?'Не хватает '+(100-coins)+' 🪙':'Купить за 100 🪙';btn.disabled=chosen;btn.addEventListener('click',e=>{e.stopPropagation();if(!owned){if(coins<100){previewSkin=skin.id;refreshShop();document.getElementById('previewStatus').textContent='Не хватает '+(100-coins)+' 🪙 для покупки этого дракона.';return}coins-=100;if(!ownedSkins.includes(skin.id))ownedSkins.push(skin.id)}selectedSkin=skin.id;previewSkin=skin.id;saveShop();refreshShop()});el.appendChild(btn);el.addEventListener('click',()=>{previewSkin=skin.id;refreshShop()});el.addEventListener('keydown',e=>{if(e.target===el&&(e.key==='Enter'||e.key===' ')){e.preventDefault();previewSkin=skin.id;refreshShop()}});skinGrid.appendChild(el)}}else{for(const skin of enemySkinInfo){let owned=ownedEnemySkins.includes(skin.id),chosen=selectedEnemySkin===skin.id,priceValue=skin.id==='toxic'?150:100;const el=document.createElement('div');el.className='skin'+(chosen?' selected':'')+(previewEnemySkin===skin.id?' previewing':'');el.tabIndex=0;el.setAttribute('role','button');el.setAttribute('aria-label','Посмотреть скин врага '+skin.name);const icon=document.createElement('span');icon.className='emoji';icon.textContent=skin.emoji+' 🔥';el.appendChild(icon);const name=document.createElement('b');name.textContent=skin.name;el.appendChild(name);const price=document.createElement('span');price.textContent=skin.id==='fire'?'Бесплатный':owned?'Куплен':priceValue+' 🪙';el.appendChild(price);const previewButton=document.createElement('button');previewButton.textContent='👀 Посмотреть';previewButton.addEventListener('click',e=>{e.stopPropagation();previewEnemySkin=skin.id;refreshShop()});el.appendChild(previewButton);const btn=document.createElement('button');btn.textContent=chosen?'✓ Надет':owned?'Надеть':coins<priceValue?'Не хватает '+(priceValue-coins)+' 🪙':'Купить за '+priceValue+' 🪙';btn.disabled=chosen;btn.addEventListener('click',e=>{e.stopPropagation();if(!owned){if(coins<priceValue){previewEnemySkin=skin.id;refreshShop();document.getElementById('previewStatus').textContent='Не хватает '+(priceValue-coins)+' 🪙 для покупки этого скина врага.';return}coins-=priceValue;if(!ownedEnemySkins.includes(skin.id))ownedEnemySkins.push(skin.id)}selectedEnemySkin=skin.id;previewEnemySkin=skin.id;saveShop();refreshShop()});el.appendChild(btn);el.addEventListener('click',()=>{previewEnemySkin=skin.id;refreshShop()});el.addEventListener('keydown',e=>{if(e.target===el&&(e.key==='Enter'||e.key===' ')){e.preventDefault();previewEnemySkin=skin.id;refreshShop()}});skinGrid.appendChild(el)}}drawShopPreview()}
+document.getElementById('shopTabDragons').addEventListener('click',()=>setShopMode('dragons'));document.getElementById('shopTabEnemies').addEventListener('click',()=>setShopMode('enemies'));document.getElementById('shopOpen').addEventListener('click',()=>{shopOpen=true;resetJoystick();held=null;heldKey=null;previewSkin=selectedSkin;previewEnemySkin=selectedEnemySkin;shopPanel.classList.add('visible');setShopMode(shopMode)});function closeShop(){shopOpen=false;shopPanel.classList.remove('visible');held=null;heldKey=null;nextMove=0}document.getElementById('shopClose').addEventListener('click',closeShop);shopPanel.addEventListener('click',e=>{if(e.target===shopPanel)closeShop()});
+// Music is synthesized in the browser so the game also works offline.
+let audioCtx=null,musicTimer=null,musicEnabled=false,menuMusicEnabled=true,musicTick=0,musicInterval=310;
+function syncCustomMusic(){
+ if(musicTimer){clearInterval(musicTimer);musicTimer=null}
+ const enabled=menuVisible?menuMusicEnabled:musicEnabled;
+ if(enabled&&audioCtx&&audioCtx.state==='running'){
+  resetMusicSequence();
+  musicInterval=menuVisible?musicProfiles.menu.step:currentMusicProfile().step;
+  playMusicBeat();
+  musicTimer=setInterval(playMusicBeat,musicInterval);
+ }
+}
+const musicProfiles={
+ // An original, gentle, looping melody exclusive to the main menu.
+ menu:{step:385,main:[72,76,79,83,79,76,74,76,71,74,79,81,79,74,72,74,69,72,76,79,76,72,71,72,67,71,74,79,76,74,71,72],bass:[48,48,43,43,45,45,40,40,41,41,45,45,43,43,48,48],wave:'sine',bassWave:'triangle',spark:'sine',vol:.025,bassVol:.012,sparkVol:.009},
+ default:{step:310,main:[64,67,71,72,71,67,64,60,62,65,69,71,69,65,62,59],bass:[40,40,43,43,45,45,38,38],wave:'sine',bassWave:'triangle',spark:'triangle',vol:.034,bassVol:.018,sparkVol:.015},
+ spider:{step:330,main:[57,60,61,64,60,57,56,52,55,59,60,63,59,55,54,52],bass:[33,33,40,40,38,38,35,35],wave:'triangle',bassWave:'sawtooth',spark:'square',vol:.032,bassVol:.016,sparkVol:.01},
+ bat:{step:295,main:[62,66,69,74,69,66,62,57,61,64,69,73,69,64,61,57],bass:[38,38,45,45,43,43,40,40],wave:'triangle',bassWave:'sine',spark:'sine',vol:.03,bassVol:.016,sparkVol:.014},
+ wolf:{step:320,main:[60,64,67,72,69,67,64,60,62,65,69,74,71,69,65,62],bass:[36,36,43,43,41,41,38,38],wave:'triangle',bassWave:'triangle',spark:'sine',vol:.032,bassVol:.018,sparkVol:.013},
+ crab:{step:300,main:[67,71,74,79,76,72,69,67,64,67,71,76,72,69,67,64],bass:[43,43,38,38,40,40,35,35],wave:'sine',bassWave:'square',spark:'triangle',vol:.033,bassVol:.017,sparkVol:.014},
+ twisted:{step:245,main:[76,79,81,79,76,74,72,74,76,79,81,79,76,74,72,71,74,77,81,77,74,72,69,72,74,77,79,77,74,72,71,69],chorus:[79,81,84,81,79,76,79,81,79,81,84,86,84,81,79,76,81,84,86,84,81,77,79,81,79,81,84,81,79,76,74,72],bass:[48,48,48,48,48,48,48,48,43,43,43,43,43,43,43,43,41,41,41,41,41,41,41,41,45,45,45,45,45,45,45,45],wave:'triangle',bassWave:'sine',spark:'sine',vol:.024,bassVol:.012,sparkVol:.009}
+};
+function currentMusicProfile(){
+ const enemy=themes[themeIndex].enemy;
+ if(enemy==='spider')return musicProfiles.spider;
+ if(enemy==='bat')return musicProfiles.bat;
+ if(enemy==='wolf')return musicProfiles.wolf;
+ if(enemy==='crab')return musicProfiles.crab;
+ if(enemy==='twisted')return musicProfiles.default;
+ return musicProfiles.default;
+}
+function resetMusicSequence(){musicTick=0}
+function playMusicNote(midi,when,duration,volume,type,detune=0){
+ if(!audioCtx)return;
+ const oscillator=audioCtx.createOscillator(),gain=audioCtx.createGain();
+ oscillator.type=type;
+ oscillator.frequency.setValueAtTime(440*Math.pow(2,(midi-69)/12),when);
+ if(detune)oscillator.detune.setValueAtTime(detune,when);
+ gain.gain.setValueAtTime(.0001,when);
+ gain.gain.exponentialRampToValueAtTime(volume,when+.02);
+ gain.gain.exponentialRampToValueAtTime(Math.max(.0001,volume*.52),when+duration*.45);
+ gain.gain.exponentialRampToValueAtTime(.0001,when+duration);
+ oscillator.connect(gain);gain.connect(audioCtx.destination);oscillator.start(when);oscillator.stop(when+duration+.04);
+}
+function playMusicBeat(){
+ if(!audioCtx||audioCtx.state!=='running')return;
+ if(menuVisible?!menuMusicEnabled:(!musicEnabled||paused))return;
+ const p=menuVisible?musicProfiles.menu:currentMusicProfile();
+ const i=musicTick%p.main.length,now=audioCtx.currentTime+.015;
+ const main=p.main[i],bass=p.bass[musicTick%p.bass.length];
+ playMusicNote(main,now,p.step/1000*.62,p.vol,p.wave);
+ playMusicNote(bass,now,p.step/1000*.9,p.bassVol,p.bassWave);
+ const enemy=menuVisible?'menu':themes[themeIndex].enemy;
+ if(enemy==='menu'){
+  if(i%4===0)playMusicNote(main+12,now+.10,p.step/1000*.22,p.sparkVol,p.spark);
+ }else if(enemy==='crab'){
+  if(i%2===0)playMusicNote(main+12,now+.08,p.step/1000*.22,p.sparkVol,'triangle');
+ }else if(enemy==='spider'){
+  if(i%4===0)playMusicNote(main-5,now+.04,p.step/1000*.18,p.sparkVol,'square');
+ }else if(i%4===0){
+  playMusicNote(main+12,now+.07,p.step/1000*.16,p.sparkVol,p.spark);
+ }
+ musicTick++;
+}
+// A short, soft fire whoosh for approaching monsters (generated offline by Web Audio).
+let lastMonsterSoundAt=0,fireNoiseBuffer=null;
+function fireMonsterSound(nowMs){
+ if(!musicEnabled||paused||menuVisible||!playing||!audioCtx||audioCtx.state!=='running')return;
+ if(nowMs-lastMonsterSoundAt<1550)return;
+ lastMonsterSoundAt=nowMs;
+ const sr=audioCtx.sampleRate,frames=Math.round(sr*.27);
+ if(!fireNoiseBuffer){
+  fireNoiseBuffer=audioCtx.createBuffer(1,frames,sr);
+  const data=fireNoiseBuffer.getChannelData(0);
+  for(let i=0;i<frames;i++)data[i]=Math.random()*2-1;
+ }
+ const source=audioCtx.createBufferSource(),filter=audioCtx.createBiquadFilter(),gain=audioCtx.createGain();
+ source.buffer=fireNoiseBuffer;source.playbackRate.value=.86+Math.random()*.28;
+ filter.type='lowpass';filter.frequency.setValueAtTime(900,audioCtx.currentTime);
+ filter.frequency.exponentialRampToValueAtTime(250,audioCtx.currentTime+.25);
+ const at=audioCtx.currentTime;
+ gain.gain.setValueAtTime(.0001,at);
+ gain.gain.exponentialRampToValueAtTime(.045,at+.028);
+ gain.gain.exponentialRampToValueAtTime(.0001,at+.26);
+ source.connect(filter);filter.connect(gain);gain.connect(audioCtx.destination);
+ source.start(at);source.stop(at+.28);
+}
+function updateMenuMusicButton(){const b=document.getElementById('menuMusic');b.textContent=menuMusicEnabled?'🎵 Музыка меню: вкл.':'🔇 Музыка меню: выкл.';b.setAttribute('aria-pressed',String(menuMusicEnabled))}
+async function activateMenuMusic(){
+ if(!menuVisible||!menuMusicEnabled)return;
+ try{
+  const AC=window.AudioContext||window.webkitAudioContext;
+  if(!AC)return;
+  if(!audioCtx)audioCtx=new AC();
+  if(audioCtx.state!=='running')await audioCtx.resume();
+  if(!menuVisible)return;
+  if(!musicTimer)syncCustomMusic();
+ }catch(e){}
+}
+document.getElementById('menuMusic').addEventListener('click',async()=>{
+ menuMusicEnabled=!menuMusicEnabled;
+ updateMenuMusicButton();
+ if(menuMusicEnabled)await activateMenuMusic();
+ syncCustomMusic();
+});
+// Browser audio starts on the first player interaction rather than autoplaying silently.
+document.getElementById('mainMenu').addEventListener('pointerdown',e=>{
+ if(e.target.closest('#menuMusic'))return;
+ void activateMenuMusic();
+},{capture:true});
+updateMenuMusicButton();
+function updateMusicButton(){document.getElementById('musicButton').textContent=musicEnabled?'🔊 Музыка: вкл.':'🔇 Музыка: выкл.'}
+function stopMusic(){if(musicTimer){clearInterval(musicTimer);musicTimer=null}musicEnabled=false;updateMusicButton()}
+document.getElementById('musicButton').addEventListener('click',async()=>{
+ if(musicEnabled){stopMusic();return}
+ try{const AudioConstructor=window.AudioContext||window.webkitAudioContext;
+  if(!AudioConstructor){alert('Этот браузер не поддерживает воспроизведение музыки.');return}
+  if(!audioCtx)audioCtx=new AudioConstructor();await audioCtx.resume();
+  musicEnabled=true;resetMusicSequence();updateMusicButton();syncCustomMusic();
+ }catch(e){stopMusic()}
+});
+function halloweenDecor(t){
+ ctx.save();ctx.globalAlpha=.7;
+ // Small haunted webs sit in the corners of the level, behind the characters.
+ for(const [bx,by,sx,sy] of [[offx+2,offy+2,1,1],[offx+cols*cell-2,offy+2,-1,1],[offx+2,offy+rows*cell-2,1,-1],[offx+cols*cell-2,offy+rows*cell-2,-1,-1]]){
+  ctx.strokeStyle='#e6bd8a';ctx.lineWidth=1;
+  for(let j=1;j<=4;j++){ctx.beginPath();ctx.arc(bx,by,j*cell*.29,0,Math.PI/2);ctx.save();ctx.translate(bx,by);ctx.scale(sx,sy);ctx.stroke();ctx.restore()}
+  for(let k=0;k<=4;k++){let a=k*Math.PI/8;ctx.beginPath();ctx.moveTo(bx,by);ctx.lineTo(bx+sx*Math.cos(a)*cell*1.2,by+sy*Math.sin(a)*cell*1.2);ctx.stroke()}
+ }
+ // Pumpkin lanterns on some wall cells.
+ for(let y=2;y<rows-1;y+=5)for(let x=2;x<cols-1;x+=7){if(maze[y][x]!==1)continue;
+  const c=center(x,y);ctx.save();ctx.translate(c.x,c.y);ctx.scale(cell/38,cell/38);
+  ctx.fillStyle='#f18a19';ctx.beginPath();ctx.ellipse(0,2,12,10,0,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#5b9435';ctx.fillRect(-2,-12,4,6);ctx.fillStyle='#57250d';
+  for(let dx of [-5,5]){ctx.beginPath();ctx.moveTo(dx,-2);ctx.lineTo(dx-3,3);ctx.lineTo(dx+2,3);ctx.fill()}
+  ctx.beginPath();ctx.arc(0,6,4,0,Math.PI);ctx.fill();ctx.restore()
+ }
+ // Wispy floating ghost silhouettes.
+ for(let i=0;i<4;i++){let xx=offx+cell*(2.5+((i*5+2)%Math.max(3,cols-4))),yy=offy+cell*(2.5+((i*3+1)%Math.max(3,rows-4)))+Math.sin(t/720+i)*6;
+  ctx.globalAlpha=.16+.09*Math.sin(t/800+i)**2;ctx.fillStyle='#fff4d9';ctx.beginPath();ctx.arc(xx,yy-5,cell*.21,Math.PI,0);ctx.lineTo(xx+cell*.21,yy+cell*.22);ctx.quadraticCurveTo(xx,yy+cell*.09,xx-cell*.21,yy+cell*.22);ctx.closePath();ctx.fill();
+  ctx.fillStyle='#422319';ctx.beginPath();ctx.arc(xx-cell*.07,yy-5,cell*.028,0,Math.PI*2);ctx.arc(xx+cell*.07,yy-5,cell*.028,0,Math.PI*2);ctx.fill();ctx.globalAlpha=.7;
+ }
+ ctx.restore();
+}
+function forestPawPrint(X,Y,size,x,y){if(((x*17+y*29+x*y*3)%11)>3)return;ctx.save();ctx.translate(X+size*(.35+((x*7+y*3)%4)*.1),Y+size*(.35+((x*5+y*11)%3)*.12));ctx.rotate(((x*13+y*19)%7-3)*.16);ctx.globalAlpha=.26;ctx.fillStyle='#a8b78a';ctx.beginPath();ctx.ellipse(0,size*.08,size*.095,size*.075,-.18,0,Math.PI*2);ctx.fill();for(const [dx,dy] of [[-.105,-.065],[-.035,-.125],[.052,-.12],[.12,-.045]]){ctx.beginPath();ctx.ellipse(dx*size,dy*size,size*.035,size*.047,0,0,Math.PI*2);ctx.fill()}ctx.restore()}
+function render(t){if(paused)t=pausedAt;ctx.clearRect(0,0,C.width,C.height);const th=themes[themeIndex];ctx.fillStyle=th.base;ctx.fillRect(0,0,C.width,C.height);for(let y=0;y<rows;y++)for(let x=0;x<cols;x++){let X=offx+x*cell,Y=offy+y*cell;if(maze[y][x]){if(th.enemy==='wolf'){bushWall(X,Y,cell,(x+y)%2?'a':'b')}else{ctx.fillStyle=th.enemy==='twisted'?['#f7a1ca','#f8d47b','#95e6bb','#a3bff9','#c9a5ef'][(x*3+y*7)%5]:(x+y)%2?th.wallA:th.wallB;ctx.fillRect(X+.6,Y+.6,cell-.8,cell-.8);ctx.fillStyle=th.wallLight;ctx.fillRect(X+2,Y+2,cell-4,Math.max(2,cell*.09));ctx.fillStyle=th.wallShade;ctx.fillRect(X+cell*.83,Y+cell*.19,cell*.12,cell*.75);if(th.enemy!=='twisted'&&th.enemy!=='wolf'){ctx.save();ctx.globalAlpha=.20;ctx.strokeStyle='#fff7e0';ctx.lineWidth=Math.max(.6,cell*.023);ctx.strokeRect(X+cell*.08,Y+cell*.12,cell*.77,cell*.72);ctx.beginPath();ctx.moveTo(X+cell*.15,Y+cell*.48);ctx.lineTo(X+cell*.46,Y+cell*.48);ctx.moveTo(X+cell*.54,Y+cell*.25);ctx.lineTo(X+cell*.54,Y+cell*.78);ctx.stroke();ctx.restore()}}}else{ctx.fillStyle=(x+y)%2?th.floorA:th.floorB;ctx.fillRect(X,Y,cell+.3,cell+.3);if(th.enemy!=='twisted'){ctx.save();ctx.globalAlpha=.18;ctx.strokeStyle='#fff3d4';ctx.lineWidth=Math.max(.5,cell*.018);ctx.strokeRect(X+cell*.08,Y+cell*.08,cell*.84,cell*.84);ctx.restore()}circle(X+cell*.5,Y+cell*.5,Math.max(.6,cell*.018),th.dot);if(th.enemy==='wolf')forestPawPrint(X,Y,cell,x,y);if(th.enemy==='twisted')dandyDecor(X,Y,cell,x,y,t)}}if(th.enemy==='spider')halloweenDecor(t);let pp=center(portal.x,portal.y),ready=gems.every(g=>g.taken),pulse=Math.sin(t/230);ctx.save();ctx.translate(pp.x,pp.y);ctx.shadowBlur=ready?25:11;ctx.shadowColor='#ff3249';ctx.fillStyle=ready?'#f93a52':'#803046';ctx.beginPath();ctx.ellipse(0,0,cell*.35+2*pulse,cell*.43+1*pulse,0,0,Math.PI*2);ctx.fill();ctx.fillStyle=ready?'#621b87':'#49213b';ctx.beginPath();ctx.ellipse(0,0,cell*.24,cell*.32,0,0,Math.PI*2);ctx.fill();ctx.strokeStyle=ready?'#ff9a99':'#9e6672';ctx.lineWidth=2;ctx.stroke();ctx.restore();for(let h of hideouts)yellowPortal(h,t);drawSecretStar(t);for(let g of gems)if(!g.taken)crystal(g.x,g.y,t);for(const potion of speedPotions)if(!potion.taken)drawSpeedPotion(potion.x,potion.y,t);monsters.forEach((m,i)=>{if(themes[themeIndex].enemy==='spider')spiderMonster(m.x,m.y,t,i);else if(themes[themeIndex].enemy==='bat')batMonster(m.x,m.y,t,i);else if(themes[themeIndex].enemy==='wolf')wolfMonster(m.x,m.y,t,i);else if(themes[themeIndex].enemy==='crab')crabMonster(m.x,m.y,t,i);else if(themes[themeIndex].enemy==='twisted')twistedMonster(m.x,m.y,t,i);else monster(m.x,m.y,t,i)});skinEffect(smoothPosition?.x??player.x,smoothPosition?.y??player.y,t,selectedSkin);if(t<boostUntil){const cp=center(smoothPosition?.x??player.x,smoothPosition?.y??player.y);ctx.save();ctx.strokeStyle='#4bd7ff';ctx.lineWidth=2.5;ctx.shadowColor='#53caff';ctx.shadowBlur=12;ctx.beginPath();ctx.arc(cp.x,cp.y,cell*.43,0,Math.PI*2);ctx.stroke();ctx.restore()}dragon(smoothPosition?.x??player.x,smoothPosition?.y??player.y,t,selectedSkin);if(hiding){let c=center(player.x,player.y);ctx.textAlign='center';ctx.font='bold '+Math.max(10,cell*.32)+'px system-ui';ctx.fillStyle='#fff5a8';ctx.fillText('🛡',c.x,c.y-cell*.44)}if(!ready){ctx.fillStyle='#ffb7c4';ctx.textAlign='center';ctx.font='bold '+Math.max(10,cell*.26)+'px system-ui';ctx.fillText('🔒',pp.x,pp.y+cell*.1)}if(bonusFlash>t){ctx.save();ctx.font='bold 23px system-ui';ctx.textAlign='center';ctx.fillStyle='#ffe875';ctx.shadowColor='#ffad32';ctx.shadowBlur=12;ctx.fillText('✨ +5 🪙 ✨',C.width/2,48-(bonusFlash-t)*.012);ctx.restore()}// Every fifth level is a blackout: visibility ends three maze cells from the dragon.
+if(level%5===0){
+ const sight=center(player.x,player.y),radius=cell*3;
+ ctx.save();
+ const darkness=ctx.createRadialGradient(sight.x,sight.y,cell*1.65,sight.x,sight.y,radius);
+ darkness.addColorStop(0,'rgba(3,5,12,0)');
+ darkness.addColorStop(.65,'rgba(3,5,12,0.12)');
+ darkness.addColorStop(.95,'rgba(3,5,12,0.58)');
+ darkness.addColorStop(1,'rgba(3,5,12,0.68)');
+ ctx.fillStyle=darkness;ctx.fillRect(0,0,C.width,C.height);
+ ctx.restore();
+}
+if(level%5===0&&playing&&blackoutNoticeUntil>t){
+ ctx.save();ctx.textAlign='center';ctx.textBaseline='middle';
+ const msg='Ой! Свет выключился. Удачи!';
+ ctx.font='bold '+Math.max(17,Math.min(27,cell*.79))+'px system-ui';
+ const boxWidth=Math.min(C.width-32,ctx.measureText(msg).width+42);
+ const yy=C.height-44;
+ ctx.fillStyle='rgba(24,16,42,0.88)';ctx.strokeStyle='#f0c3ff';ctx.lineWidth=2;
+ ctx.beginPath();ctx.roundRect((C.width-boxWidth)/2,yy-25,boxWidth,50,14);ctx.fill();ctx.stroke();
+ ctx.fillStyle='#fff0ad';ctx.fillText(msg,C.width/2,yy);
+ ctx.restore();
+}
+if(playing&&!shopOpen&&!paused){let dt=Math.min(70,t-last);if(joystickPointer!==null)moveSmooth(dt);else if(held&&t>nextMove)step(...held);if(playing)moveMonsters(dt,t);if(Math.floor(t/1000)!==Math.floor(last/1000))updateHud()}last=t;requestAnimationFrame(render)}function cycleTheme(){baseThemeIndex=(baseThemeIndex+1)%themes.length;try{localStorage.setItem(themeStorageKey,String(baseThemeIndex))}catch(e){}syncThemeToLevel(true)}document.getElementById('themeButton').addEventListener('click',cycleTheme);document.getElementById('menuTheme').addEventListener('click',cycleTheme);document.getElementById('menuShop').addEventListener('click',()=>document.getElementById('shopOpen').click());const promoPanel=document.getElementById('promoPanel'),promoInput=document.getElementById('promoInput'),promoResult=document.getElementById('promoResult');
+function closePromo(){promoPanel.classList.remove('visible');promoInput.value='';promoResult.textContent=''}
+document.getElementById('menuPromo').addEventListener('click',()=>{promoPanel.classList.add('visible');promoResult.textContent='';promoInput.value='';promoInput.focus()});
+document.getElementById('promoClose').addEventListener('click',closePromo);
+promoPanel.addEventListener('click',e=>{if(e.target===promoPanel)closePromo()});
+document.getElementById('promoForm').addEventListener('submit',e=>{e.preventDefault();const code=promoInput.value.trim().toUpperCase().replace(/\s+/g,'');if(!code){promoResult.textContent='Сначала введи код!';return}if(code!=='LUNA150'){promoResult.textContent='🔒 Такой промокод не найден.';return}let used=false;try{used=JSON.parse(localStorage.getItem('chibiDragonRedeemedCodes')||'[]').includes(code)}catch(err){}if(used){promoResult.textContent='✅ Этот промокод уже использован.';return}coins+=150;saveShop();updateHud();try{const existing=JSON.parse(localStorage.getItem('chibiDragonRedeemedCodes')||'[]');localStorage.setItem('chibiDragonRedeemedCodes',JSON.stringify([...new Set([...(Array.isArray(existing)?existing:[]),code])]))}catch(err){}promoResult.textContent='🎉 Ура! +150 🪙 добавлено!';});
+const levelPanel=document.getElementById('levelPanel'),levelGrid=document.getElementById('levelGrid');
+function showLevels(){const max=readMaxLevel();document.getElementById('levelHelp').textContent='Открыто уровней: '+max+'. Нажми на номер, чтобы начать!';levelGrid.replaceChildren();const count=MAX_LEVEL;for(let n=1;n<=count;n++){const b=document.createElement('button');b.type='button';const monsterCount=monsterCountForLevel(n);b.innerHTML='<span class="level-number">'+(n%5===0?'🌑 ':'')+n+'</span><span class="level-enemy-label">'+(monsterCount?'🔥 '+monsterCount+' '+(monsterCount===1?'монстр':monsterCount<5?'монстра':'монстров'):'✅ Без монстров')+'</span>';b.setAttribute('aria-label','Уровень '+n+'. '+(monsterCount?'Монстры: '+monsterCount:'Без монстров')+(n%5===0?'. Блэкаут':''));b.disabled=n>max;b.className=(n===readSavedLevel()?'current ':'')+(n%5===0?'blackout':'');b.title=(n>max?'Пока закрыт. ':'')+(monsterCount?'Монстров: '+monsterCount:'Без монстров')+(n%5===0?' · Блэкаут':'');b.addEventListener('click',()=>{if(n>readMaxLevel())return;level=n;saveLevel();levelPanel.classList.remove('visible');menuVisible=false;mainMenu.hidden=true;start();syncCustomMusic()});levelGrid.appendChild(b)}levelPanel.classList.add('visible')}
+document.getElementById('menuLevels').addEventListener('click',showLevels);document.getElementById('closeLevels').addEventListener('click',()=>levelPanel.classList.remove('visible'));
+levelPanel.addEventListener('click',e=>{if(e.target===levelPanel)levelPanel.classList.remove('visible')});
+document.getElementById('menuPlay').addEventListener('click',async()=>{menuVisible=false;mainMenu.hidden=true;start();if(themes[themeIndex].enemy==='twisted'&&!musicEnabled){try{const AC=window.AudioContext||window.webkitAudioContext;if(AC){if(!audioCtx)audioCtx=new AC();await audioCtx.resume();musicEnabled=true;updateMusicButton()}}catch(e){}}syncCustomMusic()});syncThemeToLevel(true);generate();requestAnimationFrame(render);
+// Убираем заставку только после первой отрисовки; на следующих уровнях она не появляется.
+const loadingScreen=document.getElementById('loadingScreen');
+requestAnimationFrame(()=>requestAnimationFrame(()=>{
+ setTimeout(()=>{loadingScreen.classList.add('finished');setTimeout(()=>loadingScreen.remove(),550)},1650);
+}));
+})();
+</script><script>
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+ window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(console.warn));
+}
+</script></body></html>
