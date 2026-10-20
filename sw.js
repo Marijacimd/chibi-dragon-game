@@ -1,4 +1,4 @@
-const CACHE = 'chibi-dragon-v6';
+const CACHE = 'chibi-dragon-v7';
 const PRECACHE = ['./','./index.html','./manifest.webmanifest?v=anime3','./icon-192.png?v=anime3','./icon-512.png?v=anime3'];
 self.addEventListener('install', event => event.waitUntil(caches.open(CACHE).then(c => c.addAll(PRECACHE)).then(()=>self.skipWaiting())));
 self.addEventListener('activate', event => event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
