@@ -240,7 +240,7 @@ function moveSmooth(dt){
  if(!smoothPosition)smoothPosition={x:player.x,y:player.y};
  const vx=joystickDirection[0],vy=joystickDirection[1],len=Math.hypot(vx,vy);
  if(len<.01)return;
- const mobileSpeedMultiplier=window.matchMedia("(max-width: 600px)").matches?1.05:1;
+ const mobileSpeedMultiplier=window.matchMedia("(max-width: 600px)").matches?1.155:1;
  const speed=(performance.now()<boostUntil?5.406:3.57)*mobileSpeedMultiplier*Math.min(dt,55)/1000;
  const dx=vx/len*speed,dy=vy/len*speed;
  // Slide along walls rather than jumping between tiles.
