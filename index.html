@@ -319,7 +319,7 @@ fullscreenButton.addEventListener('click',async()=>{
  }
  fullscreenFallback=true;syncFullscreenButton();
 });
-document.addEventListener('fullscreenchange',()=>{fullscreenFallback=false;syncFullscreenButton();requestAnimationFrame(t=>{if(cols>0&&rows>0){cell=Math.min((C.width-32)/cols,(C.height-32)/rows);offx=(C.width-cols*cell)/2;offy=(C.height-rows*cell)/2}render(t)})});
+document.addEventListener('fullscreenchange',()=>{fullscreenFallback=false;syncFullscreenButton()});
 
 function updateControls(){document.body.classList.toggle('touch-mode',touchDevice());document.body.classList.toggle('keyboard-mode',!touchDevice())}
 updateControls();let mobileMazeLayout=window.matchMedia('(max-width: 600px)').matches;window.addEventListener('resize',()=>{updateControls();const mobileNow=window.matchMedia('(max-width: 600px)').matches;if(mobileNow!==mobileMazeLayout){mobileMazeLayout=mobileNow;
