@@ -712,11 +712,11 @@ if(level%5===0){
 if(!isSnowBonus()&&level%5===0&&playing&&blackoutNoticeUntil>t){
  ctx.save();ctx.textAlign='center';ctx.textBaseline='middle';
  const msg='Ой! Свет выключился. Удачи!';
- ctx.font='bold '+Math.max(17,Math.min(27,cell*.79))+'px system-ui';
- const boxWidth=Math.min(C.width-32,ctx.measureText(msg).width+42);
- const yy=C.height-44;
- ctx.fillStyle='rgba(24,16,42,0.88)';ctx.strokeStyle='#f0c3ff';ctx.lineWidth=2;
- ctx.beginPath();ctx.roundRect((C.width-boxWidth)/2,yy-25,boxWidth,50,14);ctx.fill();ctx.stroke();
+ ctx.font='bold '+(Math.max(17,Math.min(27,cell*.79))*.5)+'px system-ui';
+ const boxWidth=Math.min(C.width-16,ctx.measureText(msg).width+21);
+ const yy=C.height-26;
+ ctx.fillStyle='rgba(24,16,42,0.88)';ctx.strokeStyle='#f0c3ff';ctx.lineWidth=1;
+ ctx.beginPath();ctx.roundRect((C.width-boxWidth)/2,yy-12.5,boxWidth,25,7);ctx.fill();ctx.stroke();
  ctx.fillStyle='#fff0ad';ctx.fillText(msg,C.width/2,yy);
  ctx.restore();
 }
