@@ -433,9 +433,14 @@ let previewSkin=selectedSkin,previewEnemySkin=selectedEnemySkin;let previewPlayS
   const hand=center(0,0),unit=cell/34;
   ctx.save();ctx.translate(hand.x,hand.y);ctx.scale(unit,unit);ctx.translate(13,-1);
   ctx.rotate(-.38+Math.sin((phase-2.05)*14)*.46);
-  ctx.fillStyle=skin.body;ctx.strokeStyle=skin.outline;ctx.lineWidth=1.7;
-  ctx.beginPath();ctx.ellipse(3,-6,5.3,7.3,-.32,0,Math.PI*2);ctx.fill();ctx.stroke();
-  for(let j=0;j<3;j++){ctx.beginPath();ctx.moveTo(j*3-1,-11);ctx.lineTo(j*3-1,-15+Math.sin(j+phase*12)*.6);ctx.stroke()}
+  // A bright, matching paw, pink pads and gentle light rim instead of a dark outline.
+  ctx.shadowColor=skin.glow||'#e9a9ff';ctx.shadowBlur=5;
+  ctx.fillStyle=skin.head;ctx.strokeStyle='#f8d6ff';ctx.lineWidth=1.65;
+  ctx.beginPath();ctx.ellipse(3,-6,6.2,8.1,-.28,0,Math.PI*2);ctx.fill();ctx.stroke();
+  ctx.fillStyle=skin.blush||'#ffb5de';ctx.shadowBlur=0;
+  ctx.beginPath();ctx.ellipse(3,-4.7,3.5,3.1,-.2,0,Math.PI*2);ctx.fill();
+  for(let j=0;j<3;j++){const px=-1+j*3.7;ctx.beginPath();ctx.ellipse(px,-10.6-(j===1?1:0),1.25,1.8,0,0,Math.PI*2);ctx.fill()}
+  ctx.strokeStyle='#fff2ff';ctx.lineWidth=.95;ctx.beginPath();ctx.arc(1,-7,2.4,3.3,5.2);ctx.stroke()
   ctx.restore();
  }
  ctx.restore();previewSleep=false;previewFlap=0;
